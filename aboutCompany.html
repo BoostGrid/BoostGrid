@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Cenova Global</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+<style>
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{
+    margin:0; min-height:100vh;
+    background:var(--bg); color:var(--text);
+    font-family:'Poppins', system-ui, sans-serif; line-height:1.75;
+    transition:background .35s var(--ease), color .35s var(--ease);
+    background-image:radial-gradient(900px 340px at 50% -120px, var(--brand-soft), transparent 70%);
+    background-repeat:no-repeat;
+  }
+  /* theme toggle: the shared .theme-toggle from css/theme.css, pinned top-right */
+  #themeToggle{ position:fixed; top:calc(14px + env(safe-area-inset-top,0px)); right:14px; z-index:10; }
+
+  .wrap{ max-width:680px; margin:0 auto; padding:64px 18px 48px; }
+
+  /* company name always in Unbounded */
+  .co{ font-family:'Unbounded', 'Poppins', sans-serif; font-weight:700; letter-spacing:-.01em; }
+  h1{
+    margin:0 0 18px; text-align:center; font-family:'Unbounded', 'Poppins', sans-serif;
+    font-size:clamp(26px, 7vw, 40px); font-weight:800; line-height:1.15; letter-spacing:-.02em;
+    background:linear-gradient(135deg, var(--brand), var(--brand-deep)); -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .lead{
+    margin:0 0 26px; padding:16px 18px; text-align:center; font-size:15px; line-height:1.55; color:var(--text);
+    background:var(--brand-soft); border:1px solid var(--border); border-radius:var(--radius-md);
+  }
+  .lead strong{ font-weight:600; }
+
+  h2{
+    display:flex; align-items:center; gap:10px; margin:32px 0 10px;
+    font-family:'Poppins', system-ui, sans-serif; font-size:17px; font-weight:600; line-height:1.3; color:var(--text);
+  }
+  h2::before{ content:""; flex:0 0 auto; width:4px; height:18px; border-radius:2px; background:linear-gradient(180deg, var(--brand), var(--brand-deep)); }
+  p{ margin:0 0 14px; font-size:14px; color:var(--text-dim); }
+  a{ color:var(--brand-deep); font-weight:600; text-decoration:none; overflow-wrap:anywhere; }
+  a:hover{ text-decoration:underline; }
+  body.dark a{ color:var(--brand); }
+
+  .back{
+    display:block; width:max-content; margin:34px auto 0; padding:10px 20px;
+    font-size:13px; font-weight:600; color:var(--text); text-decoration:none;
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    transition:transform .25s var(--spring), border-color .2s;
+  }
+  .back:hover{ border-color:var(--brand); text-decoration:none; }
+  .back:active{ transform:scale(.95); }
+
+  @media (min-width:700px){ .wrap{ padding-top:80px; } p{ font-size:14.5px; } }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode"><span class="knob"><svg id="themeIcon" viewBox="0 0 24 24"></svg></span></button>
+<div class="wrap">
+  <h1>About Cenova</h1>
+  <p class="lead"><strong>BoostGrid is a product built and operated by <span class="co">Cenova</span>.</strong></p>
+
+  <p>
+    <span class="co">Cenova</span> is the name under which we build and run our digital
+    products — BoostGrid is the second one of them. Think of <span class="co">Cenova Global</span> as
+    the team or brand behind the platform, and BoostGrid as the web you're
+    using today.
+  </p>
+
+  <h2>One company, several products</h2>
+  <p>
+    <span class="co">Cenova</span> is a Global company. Rather than running every individual
+    product as its own separate entity, we operate our apps — BoostGrid
+    included — under this one company, the way many small software
+    businesses run several products under a single parent entity.
+  
+  </p>
+
+  <h2>How we protect your money and data</h2>
+  <p>
+    Deposits and withdrawals on BoostGrid go through licensed payment
+    processors (Paystack and Flutterwave) — we never handle your card
+    or bank login details directly, and every deposit is verified
+    against the processor's own records before your balance is
+    credited. See our <a href="privacy-policy.html">Privacy Policy</a>
+    for exactly what data we collect and why, and our
+    <a href="rules.html">Platform Rules</a> for how the platform itself
+    is expected to be used.
+  </p>
+
+  <h2>Questions?</h2>
+  <p>
+    Reach us any time at <a href="mailto:boostgrid1@gmail.com">boostgrid1@gmail.com</a>.
+  </p>
+
+  <a class="back" href="javascript:history.back()">&larr; Back</a>
+</div>
+<script>
+  (function () {
+    var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+    var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+    var btn = document.getElementById("themeToggle"), icon = document.getElementById("themeIcon");
+    function applyTheme(dark) {
+      document.body.classList.toggle("dark", dark);
+      icon.innerHTML = dark ? SUN : MOON;
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("sh-theme") || localStorage.getItem("theme"); } catch (e) {}
+    applyTheme(saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+    btn.addEventListener("click", function () {
+      var dark = !document.body.classList.contains("dark");
+      applyTheme(dark);
+      try { localStorage.setItem("sh-theme", dark ? "dark" : "light"); localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

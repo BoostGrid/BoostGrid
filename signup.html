@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign up · BoostGrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ margin:0; min-height:100%; }
+body{
+  min-height:100dvh; background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  transition:background .35s var(--ease), color .35s var(--ease);
+  background:
+    radial-gradient(120% 55% at 50% 0%, var(--brand-soft) 0%, transparent 60%),
+    var(--bg);
+}
+h1,h2{ font-family:'Sora',system-ui,sans-serif; letter-spacing:-.02em; margin:0; }
+
+.page{ width:100%; max-width:440px; margin:0 auto; padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(28px + env(safe-area-inset-bottom,0px) + var(--kb,0px)); min-height:100dvh; display:flex; flex-direction:column; }
+
+.top{ display:flex; align-items:center; justify-content:space-between; }
+.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+.brand .wm{ height:30px; width:auto; display:block; }
+.brand span{ font:700 16px 'Sora',system-ui,sans-serif; letter-spacing:-.02em; }
+
+.head{ margin:26px 0 6px; }
+.head h1{ font-size:24px; line-height:1.2; }
+.head p{ margin:8px 0 0; font-size:13.5px; line-height:1.5; color:var(--text-dim); }
+.prog{ position:relative; height:4px; margin:20px 0 6px; border-radius:99px; background:var(--border); overflow:hidden; }
+.prog i{ position:absolute; inset:0 auto 0 0; width:0; border-radius:99px; background:linear-gradient(90deg,var(--brand),var(--brand-deep)); transition:width .5s var(--ease); }
+.prog-lbl{ min-height:16px; margin:0; font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); }
+
+/* answered list (the filled inputs stack up here) */
+.answers{ margin-top:14px; }
+.ans{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .45s var(--ease); }
+.ans.in{ grid-template-rows:1fr; }
+.ans.out{ grid-template-rows:0fr; }
+.ans-clip{ overflow:hidden; min-height:0; }
+.ans-row{
+  display:flex; align-items:center; gap:12px; width:100%; margin:0 0 8px; padding:10px 14px;
+  text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow);
+  transition:border-color .2s var(--ease), transform .2s var(--spring);
+}
+.ans-row:active{ transform:scale(.985); }
+.ans-row:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.ans-ck{ flex:0 0 auto; width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:var(--brand-soft); color:var(--brand-deep); }
+body.dark .ans-ck{ color:var(--brand); }
+.ans-ck svg{ width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+.ans-tx{ flex:1 1 auto; min-width:0; }
+.ans-tx small{ display:block; font-size:10.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+.ans-tx b{ display:block; margin-top:1px; font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ans-ed{ flex:0 0 auto; width:15px; height:15px; fill:none; stroke:var(--text-dim); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* stage: the active input slides in from the right */
+.stage{ position:relative; overflow:hidden; margin:6px -6px 0; padding:8px 6px 4px; }
+.step{ will-change:transform,opacity; }
+.step h2{ font-size:19px; line-height:1.3; margin:14px 0 0; }
+.step .sub{ margin:6px 0 0; font-size:13px; line-height:1.5; color:var(--text-dim); }
+
+/* withdrawal-style underline field: label rests inside, floats on focus / when filled */
+.wd-f{ position:relative; margin:30px 4px 10px; }
+.wd-f input{
+  display:block; width:100%; height:56px; padding:24px 44px 6px 0;
+  font:500 17px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:var(--text);
+  background:transparent; border:0; border-bottom:1px solid var(--border-strong); border-radius:0;
+  outline:none; -webkit-appearance:none; appearance:none; transition:border-color .25s var(--ease);
+}
+.wd-f input::placeholder{ color:transparent; transition:color .25s var(--ease); }
+.wd-f input:focus::placeholder{ color:color-mix(in srgb, var(--text-dim) 65%, transparent); }
+.wd-f input:-webkit-autofill{ -webkit-text-fill-color:var(--text); transition:background-color 9999s ease-out 0s; }
+.wd-f label{
+  position:absolute; left:0; top:18px; line-height:20px; font-size:14px; font-weight:500; color:var(--text-dim);
+  transform-origin:left top; pointer-events:none; transition:transform .32s var(--ease), color .2s var(--ease);
+}
+.wd-f input:focus ~ label,
+.wd-f input:not(:placeholder-shown) ~ label{ transform:translateY(-19px) scale(.8); }
+.wd-f input:focus ~ label{ color:var(--brand-deep); }
+body.dark .wd-f input:focus ~ label{ color:var(--brand); }
+.wd-f::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--brand); transform:scaleX(0); transform-origin:left; transition:transform .4s var(--ease); pointer-events:none; }
+.wd-f:focus-within::after{ transform:scaleX(1); }
+.wd-f input.invalid{ border-bottom-color:var(--danger); }
+.wd-f input.invalid ~ label{ color:var(--danger); }
+.wd-f:has(input.invalid)::after{ background:var(--danger); transform:scaleX(1); }
+.eye{ position:absolute; right:-6px; bottom:8px; width:38px; height:38px; display:grid; place-items:center; border:0; background:transparent; cursor:pointer; color:var(--text-dim); border-radius:50%; }
+.eye:focus-visible{ outline:2px solid var(--brand); }
+.eye svg{ width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+.vf{ display:flex; justify-content:space-between; gap:10px; margin:0 4px; min-height:20px; font-size:12.5px; font-weight:600; line-height:1.4; color:var(--text-dim); }
+.vf.ok{ color:var(--brand-deep); } body.dark .vf.ok{ color:var(--brand); }
+.vf.err{ color:var(--danger); }
+.vf a{ color:inherit; text-decoration:underline; }
+.vf .cnt{ flex:0 0 auto; font-variant-numeric:tabular-nums; font-weight:500; color:var(--text-dim); }
+
+.meter{ display:flex; gap:5px; margin:12px 4px 0; }
+.meter i{ flex:1; height:4px; border-radius:99px; background:var(--border); transition:background .3s var(--ease); }
+.meter[data-s="1"] i:nth-child(-n+1),
+.meter[data-s="2"] i:nth-child(-n+2){ background:#ef4444; }   /* 1-2 checks: red */
+.meter[data-s="3"] i:nth-child(-n+3){ background:#f97316; }   /* 3 checks: orange */
+.meter[data-s="4"] i:nth-child(-n+4){ background:#facc15; }   /* 4 checks: yellow */
+.meter[data-s="5"] i{ background:#22c55e; }                   /* all 5: green */
+.rules{ margin:10px 4px 0; padding:0; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:12px; color:var(--text-dim); }
+.rules li{ display:flex; align-items:center; gap:6px; transition:color .2s var(--ease); }
+.rules li::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--border-strong); transition:background .2s var(--ease); }
+.rules li.ok{ color:var(--text); } .rules li.ok::before{ background:var(--brand); }
+
+/* role chooser */
+.roles{ display:grid; gap:12px; margin-top:18px; }
+.role{
+  display:flex; align-items:center; gap:14px; width:100%; padding:16px; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow);
+  transition:border-color .2s var(--ease), transform .25s var(--spring), background .2s var(--ease);
+}
+.role:hover{ border-color:var(--border-strong); }
+.role:active{ transform:scale(.975); }
+.role:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.role.sel{ border-color:var(--brand); background:var(--brand-soft); }
+.role-ico{ flex:0 0 auto; width:44px; height:44px; display:grid; place-items:center; border-radius:14px; background:var(--brand-soft); color:var(--brand-deep); }
+body.dark .role-ico{ color:var(--brand); }
+.role.sel .role-ico{ background:var(--surface); }
+.role-ico svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.role b{ display:block; font:700 15px 'Sora',system-ui,sans-serif; letter-spacing:-.01em; }
+.role span{ display:block; margin-top:3px; font-size:12.5px; line-height:1.45; color:var(--text-dim); }
+.role .role-ico{ display:grid; place-items:center; margin:0; font-size:0; line-height:0; color:var(--brand-deep); }
+body.dark .role .role-ico{ color:var(--brand); }
+.role .role-ico svg{ display:block; margin:0; }
+
+/* button + footer */
+.agree{ display:flex; align-items:flex-start; gap:10px; margin:18px 2px 0; font-size:12.5px; line-height:1.5; color:var(--text-dim); cursor:pointer; }
+.agree[hidden]{ display:none; }
+.agree input{ -webkit-appearance:none; appearance:none; flex:0 0 auto; width:20px; height:20px; margin:1px 0 0; display:grid; place-items:center; cursor:pointer;
+  border:1.5px solid var(--border-strong); border-radius:6px; background:var(--surface); transition:background .2s var(--ease), border-color .2s var(--ease); }
+.agree input:checked{ background:linear-gradient(135deg,var(--brand),var(--brand-deep)); border-color:transparent; }
+.agree input:checked::after{ content:""; width:10px; height:5px; margin-top:-2px; border-left:2.5px solid #04140d; border-bottom:2.5px solid #04140d; transform:rotate(-45deg); }
+.agree input:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.agree a{ color:var(--brand-deep); font-weight:600; text-decoration:underline; }
+body.dark .agree a{ color:var(--brand); }
+.agree.bad input{ border-color:var(--danger); }
+.go{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:54px; margin-top:22px;
+  border:0; border-radius:var(--radius-sm); cursor:pointer; font:700 15px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:#04140d;
+  background:linear-gradient(135deg,var(--brand),var(--brand-deep)); box-shadow:0 8px 20px color-mix(in srgb, var(--brand) 32%, transparent);
+  transition:transform .2s var(--spring), opacity .2s var(--ease), box-shadow .2s var(--ease);
+}
+.go:active:not(:disabled){ transform:scale(.97); }
+.go:disabled{ opacity:.55; cursor:not-allowed; box-shadow:none; }
+.go:focus-visible{ outline:2px solid var(--brand); outline-offset:3px; }
+.go svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+.go[hidden]{ display:none; }
+.spin{ width:18px; height:18px; border:2.5px solid rgba(4,20,13,.25); border-top-color:#04140d; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.foot{ margin:auto 0 0; padding-top:22px; text-align:center; font-size:13.5px; color:var(--text-dim); }
+.foot a{ color:var(--brand-deep); font-weight:600; text-decoration:none; margin-left:4px; }
+body.dark .foot a{ color:var(--brand); }
+.foot a:hover{ text-decoration:underline; }
+.formerr{ margin:14px 4px 0; font-size:13px; line-height:1.45; font-weight:600; color:var(--danger); text-align:center; }
+.formerr:empty{ display:none; }
+.formerr a{ color:inherit; text-decoration:underline; }
+
+/* verification modal */
+.overlay{ position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(5,16,12,.6); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
+.overlay.show{ display:flex; animation:fade .2s ease both; }
+.modal{ width:100%; max-width:360px; padding:28px 22px 22px; text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 20px 60px rgba(0,0,0,.35); animation:pop .35s var(--spring) both; }
+.mico{ width:60px; height:60px; margin:0 auto 14px; display:grid; place-items:center; border-radius:50%; background:var(--brand-soft); color:var(--brand-deep); }
+body.dark .mico{ color:var(--brand); }
+.mico svg{ width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.modal h3{ margin:0 0 8px; font:700 18px 'Sora',system-ui,sans-serif; letter-spacing:-.02em; }
+.modal p{ margin:0; font-size:13.5px; line-height:1.55; color:var(--text-dim); overflow-wrap:anywhere; }
+.modal p b{ color:var(--text); font-weight:600; }
+.modal .go{ margin-top:22px; }
+@keyframes fade{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes pop{ from{ opacity:0; transform:scale(.9) translateY(8px) } to{ opacity:1; transform:none } }
+
+@media (prefers-reduced-motion:reduce){
+  .ans{ transition:none; } .prog i{ transition:none; } .overlay.show,.modal{ animation:none; }
+}
+  .wm{--wm-b1:#0d1f17;--wm-b2:#1f6b50;--wm-g1:#00cc88;--wm-g2:#00a873;--wm-g3:#008a5e;--wm-u:#00a873;--wm-flame:#ff9a3c;--wm-hi:#ffffff;--wm-core:#0d1f17;} body.dark .wm{--wm-b1:#ffffff;--wm-b2:#b6ffe2;--wm-g1:#7dffd0;--wm-g2:#00e6a0;--wm-g3:#00b880;--wm-u:#00e6a0;--wm-flame:#ffb86b;--wm-hi:#ffffff;--wm-core:#04100b;} .wm .wm-glow{filter:none} body.dark .wm .wm-glow{filter:url(#lgGlow)}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <div class="top">
+    <a class="brand" href="intro.html" aria-label="BoostGrid home"><svg class="wm" viewBox="48 2 246 52" role="img" aria-label="BoostGrid"><defs>
+      <linearGradient id="lgB" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" style="stop-color:var(--wm-b1)"/><stop offset="1" style="stop-color:var(--wm-b2)"/></linearGradient>
+      <linearGradient id="lgG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" style="stop-color:var(--wm-g1)"/><stop offset=".55" style="stop-color:var(--wm-g2)"/><stop offset="1" style="stop-color:var(--wm-g3)"/></linearGradient>
+      <linearGradient id="lgL" gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="285" y2="0"><stop offset="0" style="stop-color:var(--wm-u);stop-opacity:0"/><stop offset="1" style="stop-color:var(--wm-u)"/></linearGradient>
+      <filter id="lgGlow" x="-20%" y="-30%" width="140%" height="160%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g class="wm-glow">
+      <!-- letters drawn by hand as sharp, chamfered strokes (no font) -->
+      <g transform="translate(56 12) skewX(-8)" fill="none" stroke-width="5" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6">
+        <g stroke="url(#lgB)"><path transform="translate(0 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M16 14.5L19.5 18V24.5L14.5 29.5H2.5"/><path transform="translate(27 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(54 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(81 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V11L7 14.5H15L19.5 18V24.5L14.5 29.5H7.5L2.5 24.5"/><path transform="translate(108 0)" d="M2.5 2.5H19.5M11 2.5V29.5"/></g>
+        <g stroke="url(#lgG)"><path transform="translate(140 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V24.5L7.5 29.5H14.5L19.5 24.5V16H11"/><path transform="translate(167 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M12 14.5L19.5 29.5"/><path transform="translate(213 0)" d="M2.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H2.5Z"/></g>
+        <g transform="translate(194 0)" stroke="none">
+          <path d="M4.8 25L7 32L9.2 25Z" style="fill:var(--wm-flame)"/><path d="M6 25L7 29L8 25Z" style="fill:var(--wm-hi)"/>
+          <path d="M2.6 17L-.6 26.5L2.6 25ZM11.4 17L14.6 26.5L11.4 25Z" fill="url(#lgG)"/>
+          <path d="M2.6 12.5H11.4V25H2.6Z" fill="url(#lgB)"/>
+          <path d="M7 0C10.2 3.6 11.4 7.6 11.4 12.5H2.6C2.6 7.6 3.8 3.6 7 0Z" fill="url(#lgG)"/>
+          <circle cx="7" cy="18.6" r="2.6" fill="url(#lgG)"/><circle cx="7" cy="18.6" r="1.6" style="fill:var(--wm-core)"/>
+        </g>
+      </g>
+      <path d="M56 47H285" stroke="url(#lgL)" stroke-width="2"/>
+    </g>
+  </svg></a>
+  </div>
+
+  <div class="head">
+    <h1 id="title">Create your account</h1>
+    <p id="lede">Tell us a little about yourself. It only takes a minute.</p>
+  </div>
+
+  <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+  <p class="prog-lbl" id="progLbl"></p>
+
+  <!-- filled inputs slide up into this list and stay here -->
+  <div class="answers" id="answers"></div>
+
+  <!-- the active input slides in from the right -->
+  <div class="stage" id="stage" aria-live="polite"></div>
+
+  <label class="agree" id="agreeRow" for="agree" hidden>
+    <input type="checkbox" id="agree">
+    <span>I have read the <a href="rules.html" target="_blank" rel="noopener">Platform Rules</a> and <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+  </label>
+
+  <button class="go" id="nextBtn" type="button" hidden></button>
+  <p class="formerr" id="formErr" role="alert"></p>
+
+  <p class="foot">Already have an account?<a href="login.html">Log in</a></p>
+</div>
+
+<div class="overlay" id="verifyOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <div class="mico" id="vIcon"></div>
+    <h3 id="vTitle">Verification link sent</h3>
+    <p id="vText"></p>
+    <button class="go" id="vGo" type="button">Go to dashboard</button>
+  </div>
+</div>
+
+<script type="module">
+import { account, ID, callFunction, FUNCTIONS } from "./lib/appwrite-config.js";
+
+/* Config */
+const ROLES = {
+    client: { label: "Client", dash: "client-dashboard.html", head: "I want engagement", blurb: "Post a project and get real people engaging with your content.", icon: '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1"/><path d="M19 4v6M22 7h-6"/></svg>' },
+  earner: { label: "Earner", dash: "earner-dashboard.html", head: "I want to earn", blurb: "Complete simple social tasks and get paid for verified work.", icon: '<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="3"/><path d="M16 13h2"/><path d="M2 10h20"/><path d="M6 6l9-3 1 3"/></svg>' }
+};
+const RESERVED_NICKS = ["admin", "owner", "support", "socihub", "boostgrid", "moderator", "staff", "system", "official"];
+const ICON = {
+  check: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  pen:   '<svg class="ans-ed" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>',
+  eye:   '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:'<svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.2"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4.4-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+  mail:  '<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>',
+  alert: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v6"/><path d="M12 17h.01"/></svg>',
+  sun:   '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:  '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+};
+
+const $ = id => document.getElementById(id);
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const dur = ms => reduceMotion ? 1 : ms;
+const EASE = "cubic-bezier(.22,.9,.32,1)";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* Theme (follows the saved choice, else the device setting; no toggle on this page) */
+function applyTheme(dark) {
+  document.body.classList.toggle("dark", dark);
+}
+let savedTheme = null;
+try { savedTheme = localStorage.getItem("sh-theme") || localStorage.getItem("theme"); } catch (e) {}
+applyTheme(savedTheme ? savedTheme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+
+/* Validation */
+function passwordChecks(p) {
+  return {
+    len:   p.length >= 8,
+    upper: /[A-Z]/.test(p),
+    lower: /[a-z]/.test(p),
+    num:   /\d/.test(p),
+    sym:   /[^A-Za-z0-9]/.test(p)
+  };
+}
+function passwordScore(p) {            // 0-5: how many of the five checks pass
+  if (!p) return 0;
+  return Object.values(passwordChecks(p)).filter(Boolean).length;
+}
+
+const FIELDS = [
+  {
+    key: "name", label: "Full name", question: "What's your full name?", sub: "Used for verification. Only you and the BoostGrid team can see it.",
+    type: "text", auto: "name", inputmode: "text", maxlength: 255, summary: "Full name",
+    check(v) {
+      v = v.trim().replace(/\s+/g, " ");
+      if (v.length < 2) return "Please enter your full name.";
+      if (!/\p{L}/u.test(v)) return "Your name should contain letters.";
+      return "";
+    },
+    clean: v => v.trim().replace(/\s+/g, " ")
+  },
+  {
+    key: "nickname", label: "Nickname", question: "What's your nickname?", sub: "This is what other people see across BoostGrid. 1-12 characters, no spaces.",
+    type: "text", auto: "off", inputmode: "text", maxlength: 12, counter: true, summary: "Nickname",
+    check(v) {
+      if (!v) return "Please choose a nickname.";
+      if (/\s/.test(v)) return "No spaces allowed in a nickname.";
+      if (v.length > 12) return "Keep it to 12 characters or fewer.";
+      if (RESERVED_NICKS.includes(v.toLowerCase())) return "That nickname is reserved. Try another one.";
+      if (/^[._-]+$/.test(v)) return "Add at least one letter or number.";
+      return "";
+    },
+    live(v) {            // gentle feedback while typing
+      if (!v) return { msg: "", cls: "" };
+      if (/\s/.test(v)) return { msg: "No spaces allowed in a nickname.", cls: "err" };
+      const e = this.check(v);
+      return e ? { msg: e, cls: "err" } : { msg: "Looks good.", cls: "ok" };
+    },
+    clean: v => v.trim()
+  },
+  {
+    key: "email", label: "Email address", question: "What's your email?", sub: "We'll send a verification link here.",
+    type: "email", auto: "email", inputmode: "email", maxlength: 255, summary: "Email",
+    check(v) {
+      v = v.trim();
+      if (!v) return "Please enter your email.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "That email doesn't look right.";
+      return "";
+    },
+    clean: v => v.trim().toLowerCase()
+  },
+  {
+    key: "password", label: "Password", question: "Choose a strong password", sub: "At least 8 characters. Add an uppercase letter, a lowercase letter, a number and a symbol to make it strong.",
+    type: "password", auto: "new-password", inputmode: "text", maxlength: 128, secret: true, meter: true, summary: "Password",
+    check(v) {
+      if (!v) return "Please choose a password.";
+      if (v.length < 8) return "Use at least 8 characters.";
+      const c = passwordChecks(v);
+      if (!c.num || !(/[a-zA-Z]/.test(v))) return "Add letters and at least one number.";
+      if (passwordScore(v) < 2) return "That password is too weak. Mix cases, add a number or symbol.";
+      return "";
+    },
+    clean: v => v
+  },
+  {
+    key: "confirm", label: "Confirm password", question: "Confirm your password", sub: "Type it once more so we know it's right.",
+    type: "password", auto: "new-password", inputmode: "text", maxlength: 128, secret: true, summary: "Confirm password",
+    check(v) {
+      if (!v) return "Please confirm your password.";
+      if (v !== values.password) return "Passwords don't match.";
+      return "";
+    },
+    live(v) {
+      if (!v) return { msg: "", cls: "" };
+      return v === values.password ? { msg: "Passwords match.", cls: "ok" } : { msg: "Passwords don't match yet.", cls: "" };
+    },
+    clean: v => v
+  }
+];
+
+/* State */
+const values = { name: "", nickname: "", email: "", password: "", confirm: "" };
+let role = null;            // "earner" | "client"
+let step = -1;              // 1 = choosing a role, 0..4 = FIELDS index
+let busy = false;
+let acct = { created: false, session: false, profile: false, userId: "" };
+
+const answersEl = $("answers"), stageEl = $("stage"), nextBtn = $("nextBtn"), formErr = $("formErr");
+
+/* Header / progress */
+function paintHead() {
+  if (role) {
+    $("title").textContent = "Join as " + (role === "earner" ? "an " : "a ") + ROLES[role].label;
+    $("lede").textContent = ROLES[role].blurb;
+  } else {
+    $("title").textContent = "Create your account";
+    $("lede").textContent = "First, tell us how you'll use BoostGrid.";
+  }
+  const pct = (role && step >= 0) ? Math.min(step + 1, FIELDS.length) / FIELDS.length : 0;   // step 5 of 5 = full bar
+  $("progBar").style.width = (pct * 100) + "%";
+  $("progLbl").textContent = step >= 0 && step < FIELDS.length ? `Step ${step + 1} of ${FIELDS.length}` : (role ? "" : "Choose an account type");
+}
+
+/* Answered list rows */
+function rowId(k) { return "ans-" + k; }
+
+function maskedValue(f) { return f.secret ? "•".repeat(Math.min(values[f.key].length, 12)) : values[f.key]; }
+
+function addRow(key, label, text, onEdit, fromTop) {
+  const wrap = document.createElement("div");
+  wrap.className = "ans"; wrap.id = rowId(key);
+  wrap.innerHTML =
+    '<div class="ans-clip"><button type="button" class="ans-row" aria-label="Edit ' + esc(label) + '">' +
+      '<span class="ans-ck">' + ICON.check + '</span>' +
+      '<span class="ans-tx"><small>' + esc(label) + '</small><b>' + esc(text) + '</b></span>' + ICON.pen +
+    '</button></div>';
+  wrap.querySelector("button").addEventListener("click", onEdit);
+  answersEl.appendChild(wrap);
+  const inner = wrap.querySelector(".ans-row");
+  // expand the list smoothly, and fly the row up from where the input was sitting
+  requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add("in")));
+  if (typeof fromTop === "number") {
+    const dy = Math.max(0, fromTop);
+    inner.animate(
+      [{ transform: `translateY(${dy}px)`, opacity: 0 }, { transform: "translateY(0)", opacity: 1 }],
+      { duration: dur(520), easing: EASE, fill: "backwards" }
+    );
+  }
+  return wrap;
+}
+
+function removeRow(key) {
+  const el = $(rowId(key));
+  if (!el) return;
+  el.classList.remove("in"); el.classList.add("out");
+  setTimeout(() => el.remove(), reduceMotion ? 0 : 480);
+}
+
+/* Active step rendering */
+function buildRoleStep() {
+  const d = document.createElement("div");
+  d.className = "step";
+  d.innerHTML =
+    '<h2>Choose your account type</h2><p class="sub">You can\'t change this after signing up, so pick the one that fits.</p>' +
+    '<div class="roles" role="radiogroup" aria-label="Account type">' +
+    Object.keys(ROLES).map(k =>
+      '<button type="button" class="role' + (role === k ? " sel" : "") + '" role="radio" aria-checked="' + (role === k) + '" data-role="' + k + '">' +
+        '<span class="role-ico">' + ROLES[k].icon + '</span><span><b>' + ROLES[k].head + '</b><span>' + ROLES[k].blurb + '</span></span></button>'
+    ).join("") + '</div>';
+  d.querySelectorAll(".role").forEach(b => b.addEventListener("click", () => chooseRole(b.dataset.role, true)));
+  return d;
+}
+
+function buildFieldStep(f) {
+  const d = document.createElement("div");
+  d.className = "step";
+  d.innerHTML =
+    '<h2>' + esc(f.question) + '</h2><p class="sub">' + esc(f.sub) + '</p>' +
+    '<div class="wd-f"><input id="fld" name="' + f.key + '" type="' + f.type + '" placeholder=" " autocomplete="' + f.auto + '" inputmode="' + f.inputmode + '" maxlength="' + f.maxlength + '" autocapitalize="' + (f.key === "name" ? "words" : "none") + '" autocorrect="off" spellcheck="false" enterkeyhint="' + (step === FIELDS.length - 1 ? "done" : "next") + '">' +
+    '<label for="fld">' + esc(f.label) + '</label>' +
+    (f.secret ? '<button type="button" class="eye" id="eye" aria-label="Show password">' + ICON.eye + '</button>' : '') + '</div>' +
+    '<div class="vf" id="vf"><span id="vfMsg"></span>' + (f.counter ? '<span class="cnt" id="cnt">0/' + f.maxlength + '</span>' : '') + '</div>' +
+    (f.meter ? '<div class="meter" id="meter" data-s="0"><i></i><i></i><i></i><i></i><i></i></div>' +
+      '<ul class="rules" id="rules"><li data-r="len">8+ characters</li><li data-r="upper">Uppercase letter</li><li data-r="lower">Lowercase letter</li><li data-r="num">A number</li><li data-r="sym">A symbol</li></ul>' : '');
+
+  const input = d.querySelector("#fld");
+  input.value = values[f.key];
+  const vfMsg = d.querySelector("#vfMsg"), vf = d.querySelector("#vf");
+  const setMsg = (msg, cls) => { vfMsg.textContent = msg; vf.className = "vf" + (cls ? " " + cls : ""); };
+  const paintExtras = () => {
+    const v = input.value;
+    if (f.counter) d.querySelector("#cnt").textContent = v.length + "/" + f.maxlength;
+    if (f.meter) {
+      d.querySelector("#meter").dataset.s = passwordScore(v);
+      const c = passwordChecks(v);
+      d.querySelectorAll("#rules li").forEach(li => li.classList.toggle("ok", !!c[li.dataset.r]));
+    }
+  };
+
+  input.addEventListener("input", () => {
+    input.classList.remove("invalid");
+    formErr.textContent = "";
+    if (f.key === "nickname") input.value = input.value.replace(/\s/g, "");       // spaces never make it in
+    paintExtras();
+    if (f.live) { const r = f.live(input.value); setMsg(r.msg, r.cls); } else setMsg("", "");
+  });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); onNext(); } });
+
+  const eye = d.querySelector("#eye");
+  if (eye) eye.addEventListener("click", () => {
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    eye.innerHTML = show ? ICON.eyeOff : ICON.eye;
+    eye.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    input.focus({ preventScroll: true });
+  });
+
+  d._input = input; d._setMsg = setMsg;
+  paintExtras();
+  if (f.live && input.value) { const r = f.live(input.value); setMsg(r.msg, r.cls); }
+  return d;
+}
+
+function paintButton() {
+  nextBtn.hidden = step < 0 || step >= FIELDS.length;
+  $("agreeRow").hidden = nextBtn.hidden || step !== FIELDS.length - 1;
+  if (nextBtn.hidden) return;
+  nextBtn.disabled = false;
+  nextBtn.innerHTML = step === FIELDS.length - 1
+    ? '<span>Create my ' + ROLES[role].label + ' account</span>'
+    : '<span>Next</span>' + ICON.arrow;
+}
+
+let current = null;   // the step element currently in the stage
+
+/* Slide the old step away and the new one in. dir = 1 comes from the right, -1 from the left. */
+function showStep(el, dir, focusIt) {
+  const old = current;
+  current = el;
+  el.style.opacity = "0";
+  stageEl.appendChild(el);
+  // keep the stage the right height while two steps overlap
+  if (old) {
+    old.style.position = "absolute"; old.style.left = "6px"; old.style.right = "6px"; old.style.top = "8px";
+    old.animate(
+      [{ transform: "translateY(0)", opacity: 1 }, { transform: `translateY(${dir > 0 ? -34 : 0}px) translateX(${dir > 0 ? 0 : 40}px)`, opacity: 0 }],
+      { duration: dur(280), easing: EASE, fill: "forwards" }
+    ).onfinish = () => old.remove();
+  }
+  const a = el.animate(
+    [{ transform: `translateX(${dir * 70}%)`, opacity: 0 }, { transform: "translateX(0)", opacity: 1 }],
+    { duration: dur(520), delay: old ? dur(120) : 0, easing: "cubic-bezier(.34,1.26,.5,1)", fill: "backwards" }
+  );
+  el.style.opacity = "1";
+  a.onfinish = () => { if (focusIt && el._input) el._input.focus({ preventScroll: true }); };
+  paintHead(); paintButton();
+}
+
+/* Role selection */
+function chooseRole(r, animate) {
+  if (!ROLES[r]) return;
+  const changed = role !== r;
+  role = r;
+  // a role card flashes selected, then the role joins the list at the top and the first field slides in
+  if (current) current.querySelectorAll(".role").forEach(b => { const on = b.dataset.role === r; b.classList.toggle("sel", on); b.setAttribute("aria-checked", on); });
+  const startAfter = () => {
+    const from = current ? current.getBoundingClientRect().top - answersEl.getBoundingClientRect().bottom : 40;
+    const existing = $(rowId("role"));
+    if (existing) existing.remove();
+    addRow("role", "Account type", ROLES[r].label, () => goBackTo(-1), animate ? from : undefined);
+    step = 0;                            // earlier rows were cleared when we came back here; saved answers refill the fields
+    showStep(buildFieldStep(FIELDS[step]), 1, true);
+  };
+  if (animate && !reduceMotion) setTimeout(startAfter, 260); else startAfter();
+}
+
+/* Next / submit */
+function shake(el) {
+  el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-7px)" }, { transform: "translateX(6px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: dur(320), easing: "ease-out" });
+}
+
+async function onNext() {
+  if (busy || step < 0 || step >= FIELDS.length) return;
+  const f = FIELDS[step];
+  const input = current._input;
+  const raw = input.value;
+  const err = f.check(raw);
+  formErr.textContent = "";
+  if (err) {
+    input.classList.add("invalid");
+    current._setMsg(err, "err");
+    shake(input.parentElement);
+    input.focus({ preventScroll: true });
+    return;
+  }
+  values[f.key] = f.clean(raw);
+
+  // password changed after the confirmation was typed: the confirmation no longer counts
+  if (f.key === "password" && values.confirm && values.confirm !== values.password) values.confirm = "";
+
+  if (step === FIELDS.length - 1) {
+    if (!$("agree").checked) {
+      $("agreeRow").classList.add("bad"); shake($("agreeRow"));
+      formErr.textContent = "Please confirm you have read the Platform Rules and Privacy Policy.";
+      return;
+    }
+    submit(); return;
+  }
+
+  busy = true;
+  const fromTop = current.querySelector(".wd-f").getBoundingClientRect().top - (answersEl.getBoundingClientRect().bottom);
+  addRow(f.key, f.summary, maskedValue(f), () => goBackTo(FIELDS.indexOf(f)), fromTop);
+  step++;
+  showStep(buildFieldStep(FIELDS[step]), 1, true);
+  setTimeout(() => { busy = false; }, reduceMotion ? 0 : 420);
+}
+nextBtn.addEventListener("click", onNext);
+$("agree").addEventListener("change", () => { $("agreeRow").classList.remove("bad"); if ($("agree").checked) formErr.textContent = ""; });
+
+/* tap a filled row: rewind to it. Everything after it leaves the list but keeps its value. */
+function goBackTo(idx) {
+  if (busy) return;
+  formErr.textContent = "";
+  if (idx < 0) {
+    // back to the role chooser
+    FIELDS.forEach(f => removeRow(f.key));
+    removeRow("role");
+    step = -1;
+    showStep(buildRoleStep(), -1, false);
+    return;
+  }
+  for (let i = idx; i < FIELDS.length; i++) removeRow(FIELDS[i].key);
+  step = idx;
+  showStep(buildFieldStep(FIELDS[idx]), -1, true);
+}
+
+/* Submit: create the account, the profile, send the verification link */
+function friendlyError(e) {
+  const msg = String((e && e.message) || "");
+  if (!navigator.onLine || /network|failed to fetch|load failed/i.test(msg)) return { text: "No internet connection. Please check your network and try again." };
+  if (e && (e.code === 409 || e.type === "user_already_exists")) return { text: 'An account with this email already exists. <a href="login.html">Log in</a> or use a different email.', email: true };
+  if (e && (e.code === 429 || e.type === "general_rate_limit_exceeded")) return { text: "Too many attempts. Please wait a moment and try again." };
+  if (e && e.type && /^user_password|password/i.test(e.type)) return { text: msg || "That password can't be used. Try a different one." };
+  if (e && e.type === "user_blocked") return { text: "This account has been disabled." };
+  return { text: msg || "Something went wrong. Please try again." };
+}
+
+async function submit() {
+  if (busy) return;
+  if (!navigator.onLine) { formErr.textContent = "You are offline."; return; }
+  busy = true;
+  nextBtn.disabled = true;
+  nextBtn.innerHTML = '<span class="spin"></span><span>Creating your account…</span>';
+  formErr.textContent = "";
+
+  try {
+    if (!acct.created) {
+      // a session left over from earlier in this browser would block the new one
+      try { await account.deleteSession("current"); } catch (e) {}
+      const u = await account.create(ID.unique(), values.email, values.password, values.name);
+      acct.created = true; acct.userId = u.$id;
+    }
+    if (!acct.session) {
+      await account.createEmailPasswordSession(values.email, values.password);
+      acct.session = true;
+    }
+    if (!acct.profile) {
+      try {
+        await callFunction(FUNCTIONS.LEDGER_OPS, { action: "create-profile", name: values.name, nickname: values.nickname, role });
+      } catch (e) {
+        if (!/profile already exists/i.test(String(e && e.message))) throw Object.assign(e, { stage: "profile" });
+      }
+      acct.profile = true;
+    }
+  } catch (e) {
+    console.error(e);
+    const fe = friendlyError(e);
+    formErr.innerHTML = e && e.stage === "profile"
+      ? "You've been blocked for this attempt."
+      : fe.text;
+    if (fe.email && !(e && e.stage)) {
+      // let them fix the email in one tap
+      formErr.innerHTML += ' <a href="#" id="fixEmail">Change email</a>';
+      const l = $("fixEmail"); if (l) l.addEventListener("click", ev => { ev.preventDefault(); goBackTo(2); });
+    }
+    busy = false; paintButton();
+    return;
+  }
+
+  // account + profile are in place: send the verification link (a failure here never blocks the dashboard)
+  const dashUrl = new URL(ROLES[role].dash, window.location.href).href;
+  let sent = false;
+  try {
+    await account.createVerification(dashUrl);   // the link lands on the dashboard, which finishes verification
+    sent = true;
+    // share the 60s resend cooldown with the dashboard's email card
+    try { localStorage.setItem("socihub_ev_next_" + acct.userId, String(Date.now() + 60000)); } catch (e) {}
+  } catch (e) { console.error("Verification email failed:", e); }
+
+  busy = false;
+  showVerifyModal(sent);
+}
+
+function showVerifyModal(sent) {
+  $("vIcon").innerHTML = sent ? ICON.mail : ICON.alert;
+  $("vTitle").textContent = sent ? "Verification link sent" : "Account created";
+  $("vText").innerHTML = sent
+    ? "We sent a link to <b>" + esc(values.email) + "</b>. We recommend verifying your email early to be sure of your credentials. You can choose to do this later."
+    : "Your account is ready, but we couldn't send the verification link right now. You can verify your email later from your profile.";
+  $("vGo").onclick = () => { window.location.href = ROLES[role].dash; };
+  $("verifyOverlay").classList.add("show");
+  $("vGo").focus();
+}
+
+/* keyboard: when it opens, scroll so the active field and the Next button stay visible */
+(function keepFieldVisible() {
+  const vv = window.visualViewport;
+  const isField = el => el && el.tagName === "INPUT" && !/^(checkbox|radio|button|submit)$/.test(el.type);
+  let timer = 0;
+
+  function reveal() {
+    const el = document.activeElement;
+    if (!isField(el)) return;
+    const box = el.closest(".wd-f") || el;
+    const r = box.getBoundingClientRect();
+    const top = vv ? vv.offsetTop : 0;
+    const h = vv ? vv.height : window.innerHeight;
+    const below = 150;                                   // room under the field for its hint / the Next button
+    if (r.bottom + below > top + h || r.top < top + 60) {
+      window.scrollBy({ top: r.top - (top + 90), behavior: reduceMotion ? "auto" : "smooth" });
+    }
+  }
+  const later = (ms) => { clearTimeout(timer); timer = setTimeout(reveal, ms); };
+
+  function sync() {                                      // keyboard height -> extra page padding, so the page can scroll far enough
+    if (!vv) return;
+    const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty("--kb", kb + "px");
+    if (kb > 0) later(60);
+  }
+
+  document.addEventListener("focusin", e => { if (isField(e.target)) { sync(); later(350); } });   // 350ms: the keyboard is still sliding up
+  document.addEventListener("focusout", () => { setTimeout(() => { if (!isField(document.activeElement)) document.documentElement.style.setProperty("--kb", "0px"); }, 120); });
+  if (vv) { vv.addEventListener("resize", sync); vv.addEventListener("scroll", () => later(120)); }
+})();
+
+/* Referral link (?ref=CODE): keep the code so the dashboard can offer it in the "enter a code" box */
+(function keepRef() {
+  try {
+    const c = (new URLSearchParams(window.location.search).get("ref") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
+    if (c) localStorage.setItem("boostgrid_pending_ref", c);
+  } catch (e) {}
+})();
+
+/* Start: role from the link, or ask */
+(function init() {
+  const param = (new URLSearchParams(window.location.search).get("role") || "").trim().toLowerCase();
+  paintHead();
+  if (ROLES[param]) {
+    chooseRole(param, false);            // role link: pick it and go straight to the first question
+    // show the role as the first row of the list
+  } else {
+    showStep(buildRoleStep(), 1, false); // no (or unknown) role: ask
+  }
+})();
+</script>
+</body>
+</html>

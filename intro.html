@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoostGrid — Earn from social tasks. Grow your reach.</title>
+<meta name="description" content="BoostGrid connects clients who want social media engagement with earners who complete tasks and get paid for it.">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/global.css">
+<style>
+/* BoostGrid intro page — load after theme.css and global.css */
+:root{ --ink-soft:var(--text-dim); --nav-h:68px; }
+html{ height:auto; scroll-behavior:smooth; scroll-padding-top:84px; }
+body{ height:auto; font-family:'Sora',system-ui,sans-serif; line-height:1.6; }
+body *{ -webkit-user-select:auto; user-select:auto; }
+button{ -webkit-user-select:none; user-select:none; font-family:inherit; }
+a{ color:inherit; text-decoration:none; }
+img{ max-width:100%; display:block; }
+.wrap{ width:min(1120px,100% - 40px); margin-inline:auto; }
+section{ padding:96px 0; }
+section.alt{ background:var(--surface); border-block:1px solid var(--border); }
+:focus-visible{ outline:2px solid var(--brand); outline-offset:3px; }
+
+#siteHeader{ position:fixed; inset:0 0 auto; z-index:50; background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:blur(14px); border-bottom:1px solid var(--border); transition:transform .35s var(--ease); }
+#siteHeader.hide{ transform:translateY(-100%); }
+.nav-row{ width:min(1120px,100% - 40px); margin-inline:auto; height:var(--nav-h); display:flex; align-items:center; gap:28px; }
+.brand .mark{ height:34px; width:auto; }
+.nav-actions{ display:flex; align-items:center; gap:10px; }
+.brand,.nav-actions{ flex-shrink:0; }
+.links,.btn-outline,.btn-solid{ white-space:nowrap; }
+.help-link{ font-size:13px; color:var(--text-dim); margin-right:6px; }
+.help-link:hover{ color:var(--brand-deep); }
+.links{ display:flex; gap:26px; margin-right:auto; font-size:14px; font-weight:500; color:var(--text-dim); }
+.links a{ transition:color .2s var(--ease); } .links a:hover{ color:var(--text); }
+.btn-outline,.btn-solid{ padding:9px 18px; border-radius:1px; font-size:13.5px; font-weight:600; transition:transform .3s var(--spring); }
+.btn-outline{ border:1px solid var(--border-strong); background:var(--surface); }
+.btn-solid{ background:linear-gradient(135deg,var(--brand),var(--brand-deep)); color:#04140d; }
+.btn-outline:active,.btn-solid:active{ transform:scale(.95); }
+#menuToggle{ width:40px; height:40px; border-radius:30%; border:1px solid var(--border); background:var(--surface);
+  cursor:pointer; font-size:16px; line-height:1; color:var(--text); display:grid; place-items:center; transition:transform .3s var(--spring); }
+#menuToggle:active{ transform:scale(.88); }
+#menuToggle{ display:none; }
+.mobile-menu{ display:none; }
+.menu-theme{ display:flex; align-items:center; justify-content:space-between; padding:12px 0 0; font-weight:500; }
+
+.hero{ padding:calc(var(--nav-h) + 72px) 0 72px; background:radial-gradient(90% 70% at 85% 0%,var(--brand-soft),transparent 65%); }
+.hero .wrap{ display:grid; grid-template-columns:1.15fr .85fr; gap:56px; align-items:center; }
+.hero h1{ grid-column:1; font-family:'Unbounded',system-ui,sans-serif; font-weight:700; font-size:clamp(30px,4.6vw,52px);
+  line-height:1.12; letter-spacing:-.03em; margin:0; text-wrap:balance; }
+.hero h1 span{ display:block; margin-top:.25em; color:var(--brand-deep); }
+body.dark .hero h1 span{ color:var(--brand); }
+.hero > .wrap > p{ grid-column:1; margin:-24px 0 0; max-width:52ch; font-size:16.5px; color:var(--text-dim); }
+.hero-ctas{ grid-column:1; display:flex; flex-wrap:wrap; gap:12px; margin-top:-24px; }
+.role-btn{ border:1px solid transparent; border-radius:var(--radius-sm); padding:14px 24px; font-family:'Space Grotesk',sans-serif;
+  font-size:15px; font-weight:700; cursor:pointer; transition:transform .3s var(--spring); }
+.role-btn:active{ transform:scale(.96); }
+.role-btn.primary{ color:#04140d; background:linear-gradient(135deg,var(--brand),var(--brand-deep));
+  box-shadow:0 12px 26px -10px color-mix(in srgb,var(--brand) 65%,transparent); }
+.role-btn.secondary{ color:var(--text); background:var(--surface); border-color:var(--border-strong); }
+
+/* the one memorable thing: a task travelling to a wallet */
+.task-demo{ grid-column:2; grid-row:1 / span 3; position:relative; padding:22px; border-radius:var(--radius-lg);
+  background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow); }
+.task-demo::before{ content:""; position:absolute; left:41px; top:92px; bottom:92px; width:2px;
+  background:repeating-linear-gradient(var(--border-strong) 0 5px,transparent 5px 10px); }
+.td-step{ position:relative; display:flex; gap:14px; align-items:center; padding:14px 0; }
+.td-dot{ flex:0 0 38px; height:38px; border-radius:50%; display:grid; place-items:center; font-size:16px;
+  background:var(--surface-2); border:1px solid var(--border-strong); z-index:1; }
+.td-step b{ display:block; font-size:14px; font-family:'Space Grotesk',sans-serif; }
+.td-step small{ color:var(--text-dim); font-size:12.5px; }
+.td-step.done .td-dot{ background:linear-gradient(135deg,var(--brand),var(--brand-deep)); border-color:transparent; }
+.td-pay{ margin-left:auto; font-family:'Unbounded',sans-serif; font-weight:700; font-size:18px; color:var(--brand-deep); }
+body.dark .td-pay{ color:var(--brand); }
+.td-step.done{ animation:tdPop .7s var(--spring) .5s both; }
+@keyframes tdPop{ from{ opacity:0; transform:translateX(12px); } to{ opacity:1; transform:none; } }
+
+.stat-row{ grid-column:1 / -1; display:grid; grid-template-columns:repeat(4,1fr); margin-top:24px !important;
+  border-top:1px solid var(--border); padding-top:28px; }
+.stat-card{ padding:0 20px; border-left:1px solid var(--border); }
+.stat-card:first-child{ padding-left:1px; border-left:0; }
+.stat-card .num{ font-family:'Unbounded',sans-serif; font-weight:700; font-size:26px; letter-spacing:-.02em; }
+.stat-card .label{ font-size:13px; color:var(--text-dim); margin-top:2px; }
+
+.section-head{ max-width:640px; margin-bottom:52px; }
+.section-head h2{ font-size:clamp(26px,3.4vw,38px); letter-spacing:-.02em; line-height:1.15; margin:0 0 12px; }
+.section-head p{ margin:0; color:var(--text-dim); font-size:16px; }
+
+.showcase{ display:flex; flex-direction:column; gap:84px; }
+.showcase-row{ display:grid; grid-template-columns:1.1fr .9fr; gap:56px; align-items:center; }
+.showcase-row.reverse .dash-shot{ order:2; }
+.dash-shot{ border-radius:var(--radius-lg); border:1px solid var(--border-strong); background:var(--surface);
+  box-shadow:var(--shadow); overflow:hidden; min-height:260px; }
+.dash-shot::before{ content:""; display:block; height:30px; border-bottom:1px solid var(--border);
+  background:radial-gradient(circle,var(--border-strong) 3px,transparent 4px) 14px 50%/16px 16px repeat-x; background-size:16px 16px; }
+.dash-shot img{ width:100%; height:auto; }
+.tag{ display:inline-block; padding:5px 13px; border-radius:999px; background:var(--brand-soft); color:var(--brand-deep);
+  font-size:12.5px; font-weight:600; border:1px solid var(--border-strong); }
+body.dark .tag{ color:var(--brand); }
+.showcase-copy h3{ font-size:clamp(22px,2.6vw,30px); letter-spacing:-.02em; line-height:1.2; margin:16px 0 10px; }
+.showcase-copy p{ color:var(--text-dim); margin:0 0 18px; }
+.showcase-copy ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; }
+.showcase-copy li{ position:relative; padding-left:26px; font-size:14.5px; }
+.showcase-copy li::before{ content:""; position:absolute; left:2px; top:.5em; width:10px; height:6px;
+  border-left:2.5px solid var(--brand-deep); border-bottom:2.5px solid var(--brand-deep); transform:rotate(-45deg); }
+
+.admin-panel{ padding:40px; border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow); }
+.admin-panel h3{ font-size:22px; margin:0 0 8px; }
+.admin-panel > p{ margin:0 0 28px; color:var(--text-dim); max-width:64ch; }
+.admin-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:0; border-top:1px solid var(--border); }
+.admin-item{ padding:22px 24px 22px 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text-dim); }
+.admin-item:nth-child(even){ padding-left:24px; padding-right:0; border-left:1px solid var(--border); }
+.admin-item strong{ display:block; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:16px; margin-bottom:4px; }
+
+.features-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.feature-card{ padding:26px; border-radius:var(--radius-md); background:var(--surface); border:1px solid var(--border); }
+.feature-card .icon{ width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:20px;
+  background:var(--brand-soft); margin-bottom:16px; }
+.feature-card h4{ font-family:'Space Grotesk',sans-serif; font-size:17px; margin:0 0 6px; }
+.feature-card p{ margin:0; font-size:14px; color:var(--text-dim); }
+
+.get-started{ text-align:center; padding:56px 28px; border-radius:var(--radius-lg); color:#04140d;
+  background:radial-gradient(120% 140% at 100% 0%,rgba(255,255,255,.35),transparent 45%),linear-gradient(135deg,var(--brand),var(--brand-deep)); }
+.get-started .section-head{ margin-inline:auto; }
+.get-started .section-head p{ color:rgba(4,20,13,.72); }
+.role-cards{ display:grid; grid-template-columns:repeat(2,minmax(0,300px)); gap:16px; justify-content:center; margin-top:36px; }
+.role-card{ text-align:left; padding:24px; border-radius:var(--radius-md); background:var(--surface); color:var(--text); }
+.role-card h4{ font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 6px; }
+.role-card p{ margin:0 0 18px; font-size:13.5px; color:var(--text-dim); }
+.get-started > p{ color:rgba(4,20,13,.72) !important; } .get-started > p a{ color:#04140d !important; text-decoration:underline; }
+
+footer{ padding:40px 20px 48px; text-align:center; font-size:13px; color:var(--text-dim); border-top:1px solid var(--border); }
+.foot-links{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px 26px; margin-bottom:14px; font-weight:500; color:var(--text); }
+.foot-links a:hover{ color:var(--brand-deep); }
+
+@media (max-width:1080px){
+  .links,.help-link,.nav-actions .theme-toggle{ display:none; }
+  #menuToggle{ display:grid; }
+  .nav-actions{ margin-left:auto; }
+  .mobile-menu{ display:flex; flex-direction:column; padding:0 20px; background:var(--bg); border-top:1px solid var(--border);
+    max-height:0; opacity:0; visibility:hidden; overflow:hidden; transform:translateY(-8px);
+    transition:max-height .4s var(--ease), opacity .25s var(--ease), transform .4s var(--ease), padding .4s var(--ease), visibility 0s linear .4s; }
+  .mobile-menu.open{ max-height:480px; opacity:1; visibility:visible; transform:none; padding:6px 20px 18px;
+    transition:max-height .45s var(--ease), opacity .3s var(--ease), transform .45s var(--spring), padding .4s var(--ease), visibility 0s; }
+  .mobile-menu a{ padding:12px 0; border-bottom:1px solid var(--border); font-weight:500; }
+  .mobile-menu > *{ opacity:0; transform:translateY(-6px); transition:opacity .25s var(--ease), transform .3s var(--ease); }
+  .mobile-menu.open > *{ opacity:1; transform:none; transition-delay:calc(var(--n,0) * 35ms + 80ms); }
+  .mobile-menu > :nth-child(1){--n:0} .mobile-menu > :nth-child(2){--n:1} .mobile-menu > :nth-child(3){--n:2}
+  .mobile-menu > :nth-child(4){--n:3} .mobile-menu > :nth-child(5){--n:4} .mobile-menu > :nth-child(6){--n:5} .mobile-menu > :nth-child(7){--n:6} .mobile-menu > :nth-child(8){--n:7}
+}
+@media (max-width:900px){
+  section{ padding:64px 0; }
+  .hero{ padding-top:calc(var(--nav-h) + 40px); }
+  .hero .wrap{ grid-template-columns:1fr; gap:28px; }
+  .hero h1,.hero > .wrap > p,.hero-ctas,.task-demo,.stat-row{ grid-column:1; grid-row:auto; margin-top:0; }
+  .hero > .wrap > p{ margin:0; }
+  .stat-row{ grid-template-columns:1fr 1fr; gap:22px 0; }
+  .stat-card:nth-child(3){ padding-left:0; border-left:0; }
+  .showcase-row{ grid-template-columns:1fr; gap:28px; }
+  .showcase-row.reverse .dash-shot{ order:0; }
+  .features-grid{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width:560px){
+  .admin-panel{ padding:26px 20px; }
+  .admin-grid,.features-grid,.role-cards{ grid-template-columns:1fr; }
+  .admin-item:nth-child(even){ padding-left:0; border-left:0; }
+  .admin-item{ padding-right:0; }
+  .role-btn{ flex:1 1 100%; }
+}
+@media (max-width:700px){
+  .nav-row{ gap:6px; width:calc(100% - 30px); }
+  .nav-actions{ gap:6px; flex-shrink:0; }
+  .brand{ flex-shrink:0; margin-left:-6px; }
+  .brand .mark{ height:46px; border-radius:8px; }
+  .btn-outline,.btn-solid{ padding:8px 13px; font-size:12.5px; border-width:1.5px; border-radius:10px; white-space:nowrap; }
+  #menuToggle{ width:39px; height:39px; border-radius:10px; border:1.5px solid var(--border-strong); background:var(--surface); font-size:15px; }
+  .btn-outline{ border-color:var(--brand); color:var(--brand-deep); background:var(--surface); }
+  .hero{ padding:calc(var(--nav-h) + 44px) 0 48px; text-align:center; }
+  .hero h1{ font-family:'Unbounded',system-ui,sans-serif; font-size:clamp(28px,8.4vw,36px); line-height:1.2; letter-spacing:-.02em; }
+  .hero h1 span{ display:inline; margin:0; color:var(--brand); }
+  .hero > .wrap > p{ margin-inline:auto; font-size:15.5px; }
+  .hero-ctas{ flex-direction:column; align-items:center; }
+  .hero-ctas .role-btn{ flex:none; min-width:220px; }
+  .task-demo{ display:none; }
+  .stat-row{ grid-template-columns:1fr 1fr; gap:14px; border-top:0; padding-top:0; }
+  .stat-card,.stat-card:nth-child(3){ padding:18px 10px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); text-align:center; }
+  .stat-card .num{ color:var(--brand); font-family:'Space Grotesk',sans-serif; font-size:26px; }
+  .stat-card .label{ font-size:13.5px; }
+}
+@media (max-width:359px){
+  .nav-actions .btn-outline{ display:none; }
+}
+@media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } .td-step.done{ animation:none; } #siteHeader,.mobile-menu,.mobile-menu > *{ transition:none !important; } }
+</style>
+</head>
+<body>
+
+<header id="siteHeader">
+  <div class="nav-row">
+    <a href="" class="brand"><img src="assets/logo.png" alt="BoostGrid" class="mark"></a>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#clients">Clients</a>
+      <a href="#earners">Earners</a>
+      <a href="#admins">Admins</a>
+      <a href="#features">Features</a>
+      <a href="faq.html">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <a href="faq.html" class="help-link">Having troubles?</a>
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode"><span class="knob"><svg class="themeIcon" viewBox="0 0 24 24"></svg></span></button>
+      <a href="login.html" class="btn-outline">Log In</a>
+      <a href="signup.html" class="btn-solid">Sign Up</a>
+      <button id="menuToggle" type="button" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#overview">Overview</a>
+    <a href="#clients">Clients</a>
+    <a href="#earners">Earners</a>
+    <a href="#admins">Admins</a>
+    <a href="#features">Features</a>
+    <a href="faq.html">Having troubles? (FAQ)</a>
+    <a href="login.html">Log In</a>
+    <div class="menu-theme"><span>Dark mode</span><button class="theme-toggle" type="button" aria-label="Toggle dark mode"><span class="knob"><svg class="themeIcon" viewBox="0 0 24 24"></svg></span></button></div>
+  </div>
+</header>
+
+<section class="hero" id="overview">
+  <div class="wrap">
+    <h1>Get paid for social tasks. <span>Get real engagement for your posts.</span></h1>
+    <p>BoostGrid connects clients who want engagement on their content with earners ready to complete simple social media tasks, reviewed by admins, paid straight to your wallet.</p>
+    <div class="hero-ctas">
+      <button class="role-btn primary" onclick="goToSignup('earner')">Start Earning</button>
+      <button class="role-btn secondary" onclick="goToSignup('client')">Grow My Account</button>
+    </div>
+
+    <div class="task-demo" aria-hidden="true">
+      <div class="td-step"><div class="td-dot">📲</div><div><b>Task matched</b><small>Like &amp; comment on a post</small></div></div>
+      <div class="td-step"><div class="td-dot">📸</div><div><b>Proof submitted</b><small>Screenshot sent for review</small></div></div>
+      <div class="td-step done"><div class="td-dot">✓</div><div><b>Approved by admin</b><small>Paid to your wallet</small></div></div>
+    </div>
+
+    <div class="stat-row" style="margin-top:44px;">
+      <div class="stat-card"><div class="num">10+</div><div class="label">Platforms supported</div></div>
+      <div class="stat-card"><div class="num">₦1,000</div><div class="label">Minimum withdrawal</div></div>
+      <div class="stat-card"><div class="num">₦100</div><div class="label">When you join with a code</div></div>
+      <div class="stat-card"><div class="num">1:1</div><div class="label">Task per earner, per project</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="clients">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Built for both sides of the task</h2>
+      <p>Whether you're posting a project or completing one, here's what your dashboard looks like.</p>
+    </div>
+    <div class="showcase">
+
+      <div class="showcase-row">
+        <div class="dash-shot">
+          <img src="assets/client-dashboard.png" alt="Client dashboard screenshot">
+        </div>
+        <div class="showcase-copy">
+          <span class="tag">For Clients</span>
+          <h3>Launch a project in minutes</h3>
+          <p>Set your task, your reward per earner, and how many people you want engaging — BoostGrid handles the rest.</p>
+          <ul>
+            <li>Create tasks for any supported platform, or a fully custom request</li>
+            <li>Deposit securely via Paystack or Flutterwave</li>
+            <li>Track projects in progress and completed, all in one place</li>
+            <li>Flag submissions that don't meet your requirements</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="showcase-row reverse" id="earners">
+        <div class="dash-shot">
+          <img src="assets/earner-dashboard.png" alt="Earner dashboard screenshot">
+        </div>
+        <div class="showcase-copy">
+          <span class="tag">For Earners</span>
+          <h3>Complete tasks, get paid</h3>
+          <p>Sign up and you're automatically matched with an available task — no hunting required.</p>
+          <ul>
+            <li>One task per project, so there's no double-dipping or confusion</li>
+            <li>Upload proof and submit for admin review</li>
+            <li>Approved tasks pay straight into your wallet balance</li>
+            <li>Earn extra through referrals — ₦100 when you join with a code, plus ₦500 once 10 friends join with yours</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="admins">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Admins keep everything running fairly</h2>
+      <p>Every task submission passes through review before a naira changes hands.</p>
+    </div>
+    <div class="admin-panel">
+      <h3>What admins actually do</h3>
+      <p>Admins review submitted proof, approve or reject tasks, and release payment from their own balance — keeping clients and earners both protected.</p>
+      <div class="admin-grid">
+        <div class="admin-item"><strong>Review submissions</strong>See exactly what an earner submitted and decide: approve, reject, or flag.</div>
+        <div class="admin-item"><strong>Release payment</strong>Approving a task pays the earner immediately from the admin's balance.</div>
+        <div class="admin-item"><strong>Handle disputes</strong>Escalate a submission to the client, or reinstate a task that was wrongly rejected.</div>
+        <div class="admin-item"><strong>Track project health</strong>See projects in progress and completed at a glance, with a running transaction history.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Why BoostGrid</h2>
+      <p>The details that make the platform work for everyone using it.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon">🔒</div>
+        <h4>Secure by design</h4>
+        <p>Passwords are hashed, never stored in plain text, and sensitive actions like payments run through secure server-side functions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">💳</div>
+        <h4>Trusted payment rails</h4>
+        <p>Deposits and withdrawals go through Paystack and Flutterwave — BoostGrid never sees your card or banking details.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🎯</div>
+        <h4>One task, one earner, one project</h4>
+        <p>You'll never be double-assigned to the same project — every earner gets at most one task per project, guaranteed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🤝</div>
+        <h4>Referral rewards</h4>
+        <p>Join with a friend's code and get ₦100. Refer 10 friends and earn a ₦500 bonus.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🛡️</div>
+        <h4>Fair moderation</h4>
+        <p>Every submission is reviewed by an admin before payment — and repeated flags are the only thing that can restrict an account.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🌗</div>
+        <h4>Light or dark, your call</h4>
+        <p>Switch themes anywhere in the app — your preference is remembered across every page.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="get-started">
+  <div class="wrap">
+    <div class="get-started">
+      <div class="section-head" style="margin-bottom:0;">
+        <h2>Ready to get started?</h2>
+        <p>Choose the account that fits what you're here to do.</p>
+      </div>
+      <div class="role-cards">
+        <div class="role-card">
+          <h4>I want to earn</h4>
+          <p>Complete simple social tasks and get paid for verified work.</p>
+          <button class="role-btn primary" onclick="goToSignup('earner')" style="width:100%;">Sign up as Earner</button>
+        </div>
+        <div class="role-card">
+          <h4>I want engagement</h4>
+          <p>Post a project and get real people engaging with your content.</p>
+          <button class="role-btn primary" onclick="goToSignup('client')" style="width:100%;">Sign up as Client</button>
+        </div>
+      </div>
+      <p style="margin-top:22px; font-size:13.5px; color:var(--ink-soft);">
+        Already have an account? <a href="login.html" style="color:var(--brand); font-weight:600;">Log in</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-links">
+    <a href="aboutCompany.html">About Cenova Global</a>
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="rules.html">Platform Rules</a>
+    <a href="faq.html">FAQ</a>
+  </div>
+  &copy; 2026 Cenova Global. All Rights Reserved. BoostGrid is a product of Cenova Global.
+</footer>
+
+<script>
+  function goToSignup(role) {
+    window.location.href = `signup.html?role=${role}`;
+  }
+
+  (function () {
+    var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+    var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+    var btns = document.querySelectorAll(".theme-toggle");
+    function applyTheme(dark) {
+      document.body.classList.toggle("dark", dark);
+      btns.forEach(function (b) { b.querySelector(".themeIcon").innerHTML = dark ? SUN : MOON; });
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("sh-theme") || localStorage.getItem("theme"); } catch (e) {}
+    applyTheme(saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+    btns.forEach(function (b) { b.addEventListener("click", function () {
+      var dark = !document.body.classList.contains("dark");
+      applyTheme(dark);
+      try { localStorage.setItem("sh-theme", dark ? "dark" : "light"); localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {}
+    }); });
+  })();
+
+  const menuToggle = document.getElementById("menuToggle");
+  const mobileMenu = document.getElementById("mobileMenu");
+  menuToggle.addEventListener("click", () => {
+    const o = mobileMenu.classList.toggle("open");
+    menuToggle.textContent = o ? "✕" : "☰";
+    menuToggle.setAttribute("aria-expanded", o);
+  });
+  mobileMenu.querySelectorAll("a").forEach(a => {
+    a.addEventListener("click", () => { mobileMenu.classList.remove("open"); menuToggle.textContent = "☰"; });
+  });
+
+  const header = document.getElementById("siteHeader");
+  let lastScroll = window.pageYOffset;
+  window.addEventListener("scroll", () => {
+    const current = window.pageYOffset;
+    if (current > lastScroll && current > 80) {
+      header.classList.add("hide");
+    } else {
+      header.classList.remove("hide");
+    }
+    lastScroll = current;
+  });
+</script>
+</body>
+</html>

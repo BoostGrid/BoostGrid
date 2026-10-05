@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BoostGrid</title>
+<style>
+  :root { --brand:#00e6a0; --brand-deep:#00cc88; --brand-soft:#02a20; --bg:#05100c; --node:#d9fff0; --scale:1.48;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  html { scroll-padding-top:env(safe-area-inset-top,0px); }
+  html,body { height:100%; margin:0; background:var(--bg); overflow:hidden; }
+  body { display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(50% 50% at 50% 50%, var(--brand-soft) 0%, var(--bg) 100%); }
+  .wrap { flex:none; width:calc(min(88vw,88vh) * var(--scale)); aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+  svg { width:100%; height:100%; overflow:visible; shape-rendering:geometricPrecision;
+     }
+  .nodes circle { fill:var(--node); }
+  .lines polyline { fill:none; stroke:var(--brand); stroke-width:0.5; stroke-linecap:round; stroke-linejoin:round; filter: box-shadow:0 0 100px rgba(0,230,10,.5)); opacity: 0.3;}
+
+  /* Intro: rocket rises from the bottom while the grid fades in */
+  :root { --intro:2s; }
+  .lines, .nodes, #pulses { animation:gridIn var(--intro) ease-in-out both; }
+  @keyframes gridIn { from{opacity:0} to{opacity:1} }
+
+  .rise  { animation:rise var(--intro) cubic-bezier(.25,.46,.45,.94) both; }
+  @keyframes rise { from{transform:translateY(2400px)} to{transform:translateY(0)} }
+
+  /* After arrival: engine shake, up and down, forever */
+  .shake { animation:shake 1s ease-in-out infinite; animation-delay:var(--intro); }
+  @keyframes shake { 0%,100%{transform:translateY(0)} 25%{transform:translateY(-4px)} 75%{transform:translateY(4px)} }
+
+  /* Flame burns the whole time */
+  .flame { transform-box:fill-box; transform-origin:50% 0%; }
+  .f1 { animation:flick1 .16s ease-in-out infinite; }
+  .f2 { animation:flick2 .12s ease-in-out infinite; }
+  .f3 { animation:flick3 .09s ease-in-out infinite; }
+  @keyframes flick1 { 0%,100%{transform:scale(1,1)}   35%{transform:scale(.93,1.16)} 70%{transform:scale(1.06,.86)} }
+  @keyframes flick2 { 0%,100%{transform:scale(1,1)}   40%{transform:scale(.92,1.18)} 75%{transform:scale(1.07,.84)} }
+  @keyframes flick3 { 0%,100%{transform:scale(1,1)}   30%{transform:scale(.9,1.2)}   65%{transform:scale(1.08,.82)} }
+
+  @media (prefers-reduced-motion: reduce){
+    .lines,.nodes,#pulses,.rise,.shake,.f1,.f2,.f3{animation:none}
+  }
+
+  /* Emote in the rocket window: clipped to the glass, so it only ever shows inside the window */
+  .wicon { color:#fff; }
+  .wicon.like  { color:#1877f2; }
+  .wicon.heart { color:#ff3b5c; }
+  .wicon .em, .wicon .em * { transform-box:fill-box; transform-origin:center; }
+  .wicon.like .em { transform-origin:30% 85%; }
+  .tongue { transform-origin:50% 0 !important; }
+  #wCount { font:700 8px/1 system-ui,-apple-system,"Segoe UI",sans-serif; font-variant-numeric:tabular-nums; fill:#eafff4; opacity:0; }
+
+  /* In-window animations: play while the emote is held up */
+  .wicon.like.play .em     { animation:likeTilt .8s ease-out; }
+  .wicon.heart.play .em    { animation:beat .8s ease-in-out; }
+  .wicon.comment.play .dot { animation:dotUp .6s ease-in-out; }
+  .wicon.comment.play .d2 { animation-delay:.1s; } .wicon.comment.play .d3 { animation-delay:.2s; }
+  .wicon.follow.play .badge { animation:badgePop .8s ease-out; }
+  .wicon.money.play .em    { animation:flutter .9s ease-in-out; }
+  .wicon.face.play .em     { animation:squash .7s ease-in-out; }
+  .wicon.face.play .tongue { animation:wag .7s ease-in-out; }
+  .wicon.face.play .eye    { animation:eyePop .7s ease-in-out; }
+  .wicon.bank.play .em     { animation:bounce .8s ease-out; }
+  .wicon.cool.play .shades { animation:drop .8s cubic-bezier(.3,1.4,.5,1); }
+  .spark { opacity:0; }
+  .wicon.cool.play .spark  { animation:spark .8s ease-out .35s; }
+
+  @keyframes likeTilt { 0%{transform:rotate(0) scale(1)} 30%{transform:rotate(-28deg) scale(1.28)} 60%{transform:rotate(8deg) scale(1.1)} 100%{transform:rotate(0) scale(1)} }
+  @keyframes beat { 0%,100%{transform:scale(1)} 22%{transform:scale(1.38)} 42%{transform:scale(1)} 62%{transform:scale(1.26)} 80%{transform:scale(1)} }
+  @keyframes dotUp { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-3.5px)} }
+  @keyframes badgePop { 0%{transform:scale(1) rotate(0)} 40%{transform:scale(1.7) rotate(120deg)} 100%{transform:scale(1) rotate(180deg)} }
+  @keyframes flutter { 0%,100%{transform:rotate(0) translateY(0)} 20%{transform:rotate(-12deg) translateY(-4px)} 45%{transform:rotate(10deg) translateY(-2px)} 70%{transform:rotate(-6deg) translateY(-3px)} }
+  @keyframes squash { 0%,100%{transform:scale(1)} 30%{transform:scale(1.12,.88)} 60%{transform:scale(.94,1.1)} }
+  @keyframes wag { 0%,100%{transform:rotate(0) scaleY(1)} 25%{transform:rotate(22deg) scaleY(1.35)} 55%{transform:rotate(-22deg) scaleY(1.35)} 80%{transform:rotate(8deg)} }
+  @keyframes eyePop { 0%,100%{transform:scale(1)} 40%{transform:scale(1.4)} }
+  @keyframes bounce { 0%,100%{transform:translateY(0) scale(1)} 25%{transform:translateY(-7px) scale(.96,1.06)} 50%{transform:translateY(0) scale(1.06,.92)} 72%{transform:translateY(-3px)} }
+  @keyframes drop { 0%{transform:translateY(-14px);opacity:0} 45%{opacity:1} 65%{transform:translateY(2px)} 85%{transform:translateY(-1px)} 100%{transform:translateY(0);opacity:1} }
+  @keyframes spark { 0%{opacity:0;transform:scale(0) rotate(0)} 50%{opacity:1;transform:scale(1.3) rotate(45deg)} 100%{opacity:0;transform:scale(.5) rotate(90deg)} }
+  @media (prefers-reduced-motion: reduce){ .wicon.play .em, .wicon.play * { animation:none !important; } }
+
+  .logo { position:fixed; z-index:5; left:50%; transform:translateX(-50%); pointer-events:none;
+    top:calc(env(safe-area-inset-top,0px) + 14px); width:clamp(220px,68vw,325px);
+    animation:gridIn var(--intro) ease-in-out both; }
+  .logo svg { display:block; width:100%; height:auto; overflow:visible; }
+  @media (prefers-reduced-motion: reduce){ .logo{animation:none} }
+.spinner-row {
+  position: absolute;
+  bottom: 48px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  animation: loaderFadeIn .6s ease 4s forwards;
+}
+
+@keyframes loaderFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.spinner-row span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00cc88;
+  opacity: 0.35;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.spinner-row span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.spinner-row span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+</style>
+</head>
+<body>
+<header class="logo" role="img" aria-label="BoostGrid">
+  <svg viewBox="0 0 290 56" aria-hidden="true">
+    <defs>
+      <linearGradient id="lgB" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b6ffe2"/></linearGradient>
+      <linearGradient id="lgG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" stop-color="#7dffd0"/><stop offset=".55" stop-color="#00e6a0"/><stop offset="1" stop-color="#00b880"/></linearGradient>
+      <linearGradient id="lgL" gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="285" y2="0"><stop offset="0" stop-color="#00e6a0" stop-opacity="0"/><stop offset="1" stop-color="#00e6a0"/></linearGradient>
+      <filter id="lgGlow" x="-20%" y="-30%" width="140%" height="160%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g filter="url(#lgGlow)">
+      <!-- mark: 4x4 grid lying flat, with a boost arrow standing up from the centre -->
+      <g transform="translate(2 8)">
+        <path d="M0.00 38H40.00M2.67 30H37.33M4.83 23.5H35.17M6.57 18.3H33.43M8.00 14.0H32.00M8.00 14.0L0.00 38.0M14.00 14.0L10.00 38.0M20.00 14.0L20.00 38.0M26.00 14.0L30.00 38.0M32.00 14.0L40.00 38.0" fill="none" stroke="#00e6a0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20 2.5L29 14H23.5V29H16.5V14H11Z" fill="#ffffff" stroke="#05100c" stroke-width="1.2" stroke-linejoin="round" paint-order="stroke"/>
+      </g>
+      <!-- letters drawn by hand as sharp, chamfered strokes (no font) -->
+      <g transform="translate(56 12) skewX(-8)" fill="none" stroke-width="5" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6">
+        <g stroke="url(#lgB)"><path transform="translate(0 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M16 14.5L19.5 18V24.5L14.5 29.5H2.5"/><path transform="translate(27 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(54 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(81 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V11L7 14.5H15L19.5 18V24.5L14.5 29.5H7.5L2.5 24.5"/><path transform="translate(108 0)" d="M2.5 2.5H19.5M11 2.5V29.5"/></g>
+        <g stroke="url(#lgG)"><path transform="translate(140 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V24.5L7.5 29.5H14.5L19.5 24.5V16H11"/><path transform="translate(167 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M12 14.5L19.5 29.5"/><path transform="translate(213 0)" d="M2.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H2.5Z"/></g>
+        <g transform="translate(194 0)" stroke="none">
+          <path d="M4.8 25L7 32L9.2 25Z" fill="#ffb86b"/><path d="M6 25L7 29L8 25Z" fill="#fff"/>
+          <path d="M2.6 17L-.6 26.5L2.6 25ZM11.4 17L14.6 26.5L11.4 25Z" fill="url(#lgG)"/>
+          <path d="M2.6 12.5H11.4V25H2.6Z" fill="url(#lgB)"/>
+          <path d="M7 0C10.2 3.6 11.4 7.6 11.4 12.5H2.6C2.6 7.6 3.8 3.6 7 0Z" fill="url(#lgG)"/>
+          <circle cx="7" cy="18.6" r="2.6" fill="url(#lgG)"/><circle cx="7" cy="18.6" r="1.6" fill="#04100b"/>
+        </g>
+      </g>
+      <path d="M56 47H285" stroke="url(#lgL)" stroke-width="2"/>
+    </g>
+  </svg>
+</header>
+<div class="wrap">
+  <svg viewBox="0 0 400 400" role="img" aria-label="Sharp glowing net: three vertical and three horizontal lines with softly bent ends">
+    <defs>
+      <!-- cylinder shading across the body: dark edge, soft light, bright band, falloff -->
+      <linearGradient id="bodyGrad" gradientUnits="userSpaceOnUse" x1="137" y1="0" x2="243" y2="0">
+        <stop offset="0" stop-color="#8fa89c"/>
+        <stop offset=".22" stop-color="#e6fbf0"/>
+        <stop offset=".4" stop-color="#ffffff"/>
+        <stop offset=".7" stop-color="#cfe6da"/>
+        <stop offset="1" stop-color="#6f8a7d"/>
+      </linearGradient>
+      <linearGradient id="noseGrad" gradientUnits="userSpaceOnUse" x1="137" y1="0" x2="243" y2="0">
+        <stop offset="0" stop-color="#008a62"/>
+        <stop offset=".25" stop-color="#00e6a0"/>
+        <stop offset=".42" stop-color="#7dffd0"/>
+        <stop offset=".7" stop-color="#00cc88"/>
+        <stop offset="1" stop-color="#006a4c"/>
+      </linearGradient>
+      <linearGradient id="finL" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#006a4c"/><stop offset="1" stop-color="#00cc88"/>
+      </linearGradient>
+      <linearGradient id="finR" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#00cc88"/><stop offset="1" stop-color="#006a4c"/>
+      </linearGradient>
+      <linearGradient id="nozzle" gradientUnits="userSpaceOnUse" x1="140" y1="0" x2="240" y2="0">
+        <stop offset="0" stop-color="#3d4f47"/>
+        <stop offset=".3" stop-color="#d3e6dc"/>
+        <stop offset=".55" stop-color="#87a89a"/>
+        <stop offset="1" stop-color="#2f3f38"/>
+      </linearGradient>
+      <radialGradient id="glass" cx=".35" cy=".3" r=".8">
+        <stop offset="0" stop-color="#2f8a6c"/>
+        <stop offset=".55" stop-color="#0e2a20"/>
+        <stop offset="1" stop-color="#04100b"/>
+      </radialGradient>
+      <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7dffd0"/><stop offset="1" stop-color="#007a56"/>
+      </linearGradient>
+      <!-- inset shadow: same idea as CSS box-shadow: inset. Change dx, stdDeviation, flood-opacity to taste -->
+      <filter id="inset" x="-30%" y="-30%" width="160%" height="160%">
+        <feFlood flood-color="#001a10" flood-opacity=".65" result="c"/>
+        <feComposite in="c" in2="SourceAlpha" operator="out" result="outside"/>
+        <feGaussianBlur in="outside" stdDeviation="9" result="blur"/>
+        <feOffset in="blur" dx="-6" dy="0" result="shift"/>
+        <feComposite in="shift" in2="SourceAlpha" operator="in" result="inner"/>
+        <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="inner"/></feMerge>
+      </filter>
+      <clipPath id="winClip"><circle cx="190" cy="217" r="23"/></clipPath>
+    </defs>
+    <g class="lines" id="lines"></g>
+    <g class="nodes" id="nodes"></g>
+    <g id="pulses"></g>
+    <!-- Rocket: drawn in its own 380x560 space, scaled to sit inside the centre cells -->
+    <g id="rocket" transform="translate(65 10) scale(0.7)" role="img" aria-label="Rocket pointing upward">
+      <g class="rise">
+        <g class="shake">
+          <path class="flame f1" d="M158 400 L190 510 L222 400 Z" fill="#ff6b81"/>
+          <path class="flame f2" d="M170 400 L190 480 L210 400 Z" fill="#ffb86b"/>
+          <path class="flame f3" d="M181 400 L190 450 L199 400 Z" fill="#eafff4"/>
+          <path d="M137 285 L90 385 L137 362 Z" fill="url(#finL)"/>
+          <path d="M243 285 L290 385 L243 362 Z" fill="url(#finR)"/>
+          <path d="M190 35 C155 70 137 110 137 155 L137 380 L243 380 L243 155 C243 110 225 70 190 35 Z" fill="url(#bodyGrad)" stroke="#183226" stroke-width="2" filter="url(#inset)"/>
+          <path d="M190 35 C155 70 137 110 137 155 L243 155 C243 110 225 70 190 35 Z" fill="url(#noseGrad)" filter="url(#inset)"/>
+          <rect x="137" y="340" width="106" height="22" fill="url(#noseGrad)" filter="url(#inset)"/>
+          <line x1="137" y1="290" x2="243" y2="290" stroke="#183226" stroke-opacity=".28" stroke-width="1.2"/>
+          <line x1="137" y1="250" x2="243" y2="250" stroke="#183226" stroke-opacity=".2" stroke-width="1"/>
+          <path d="M156 175 L156 335" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="190" cy="217" r="35" fill="url(#ring)"/>
+          <circle cx="190" cy="217" r="28" fill="url(#glass)"/>
+          <g clip-path="url(#winClip)"><g transform="translate(190 217)"><g id="wMove"><g id="wHost" class="wicon"><g class="em" id="wEm"></g></g></g><g id="wMoveC"><text id="wCount" x="0" y="15.5" text-anchor="middle" dominant-baseline="middle"></text></g></g></g>
+          <path d="M177 209 A15 15 0 0 1 192 202" fill="none" stroke="#dffff0" stroke-opacity=".75" stroke-width="4" stroke-linecap="round"/>
+          <path d="M164 380 L216 380 L240 405 L140 405 Z" fill="url(#nozzle)" stroke="#183226" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="170" y1="384" x2="210" y2="384" stroke="#eafff4" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<div class="stock" hidden aria-hidden="true">
+  <button class="react like" type="button" aria-label="Like">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+  </button>
+  <button class="react heart" type="button" aria-label="Love">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+  </button>
+  <button class="react comment" type="button" aria-label="Comment">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M12 2.5C6.2 2.5 1.5 6.5 1.5 11.6c0 2.6 1.3 5 3.4 6.6L4 21.8c-.1.5.4.8.8.6l4.2-2.2c1 .2 2 .3 3 .3 5.8 0 10.5-4 10.5-9.1S17.8 2.5 12 2.5z"/>
+      <g fill="#05100c"><circle class="dot d1" cx="7.6" cy="11.6" r="1.4"/><circle class="dot d2" cx="12" cy="11.6" r="1.4"/><circle class="dot d3" cx="16.4" cy="11.6" r="1.4"/></g>
+    </svg>
+  </button>
+  <button class="react follow" type="button" aria-label="Follow">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="10" cy="9.5" r="4.2" fill="currentColor"/>
+      <path fill="currentColor" d="M2 21c0-4.2 3.6-7 8-7s8 2.8 8 7v.5H2V21z"/>
+      <g class="badge"><circle cx="19" cy="5" r="4.6" fill="#00e6a0"/>
+      <path d="M19 2.8v4.4M16.8 5h4.4" stroke="#05100c" stroke-width="1.6" stroke-linecap="round"/></g>
+    </svg>
+  </button>
+
+  <button class="react money" type="button" aria-label="Money">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><g><rect x="1.5" y="7.5" width="29" height="17" rx="3" fill="#4cc477" stroke="#1f8a4a" stroke-width="1.2"/><circle cx="16" cy="16" r="5.2" fill="#c8f5d6" stroke="#1f8a4a"/><text x="16" y="19.2" text-anchor="middle" font-size="8.5" font-weight="800" font-family="Arial,sans-serif" fill="#1f8a4a">$</text><circle cx="6.5" cy="16" r="1.6" fill="#c8f5d6"/><circle cx="25.5" cy="16" r="1.6" fill="#c8f5d6"/></g></svg>
+  </button>
+  <button class="react face" type="button" aria-label="Money face">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="14" fill="#ffcc33" stroke="#e0a100"/>
+      <text class="eye" x="10.5" y="15" text-anchor="middle" font-size="9" font-weight="800" font-family="Arial,sans-serif" fill="#1f9e50">$</text>
+      <text class="eye" x="21.5" y="15" text-anchor="middle" font-size="9" font-weight="800" font-family="Arial,sans-serif" fill="#1f9e50">$</text>
+      <path d="M8.5 19 Q16 27.5 23.5 19 Z" fill="#7a3510"/>
+      <g class="tongue"><path d="M13.5 20h6v5.5a3 3 0 0 1-6 0z" fill="#ff6b81"/><path d="M16.5 22.5v3.5" stroke="#e0506a" stroke-width="1" stroke-linecap="round"/></g>
+    </svg>
+  </button>
+  <button class="react bank" type="button" aria-label="Bank">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 3L29.5 11H2.5z" fill="#e8eef2" stroke="#90a4ae" stroke-linejoin="round"/>
+      <circle cx="16" cy="8.6" r="1.8" fill="#ffcc33"/>
+      <g fill="#cfd8dc" stroke="#90a4ae" stroke-width=".8"><rect x="5.5" y="13" width="3.4" height="11"/><rect x="11.2" y="13" width="3.4" height="11"/><rect x="17.4" y="13" width="3.4" height="11"/><rect x="23.1" y="13" width="3.4" height="11"/></g>
+      <rect x="3" y="25" width="26" height="4" rx="1" fill="#b0bec5"/>
+    </svg>
+  </button>
+  <button class="react cool" type="button" aria-label="Cool">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="14" fill="#ffcc33" stroke="#e0a100"/>
+      <path d="M10 21Q16 26 22 21" stroke="#7a3510" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <g class="shades"><rect x="4.5" y="10.5" width="10" height="7.5" rx="3" fill="#1a1a1a"/><rect x="17.5" y="10.5" width="10" height="7.5" rx="3" fill="#1a1a1a"/><path d="M14.5 12.5Q16 11.5 17.5 12.5" stroke="#1a1a1a" stroke-width="1.5" fill="none"/><path d="M7 12.6l3-1M20 12.6l3-1" stroke="#fff" stroke-opacity=".7" stroke-width="1.2" stroke-linecap="round"/></g>
+      <path class="spark" d="M27 3l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="#fff"/>
+    </svg>
+  </button>
+</div>
+<div class="spinner-row">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+<script type="module">
+import { account, getUserProfile } from "./lib/appwrite-config.js";
+
+/* splash: stay 17s, then go by session (valid -> own dashboard, none/expired -> intro.html); the check starts
+   immediately so the answer is ready */
+const SPLASH_MS = 17000;
+const DASH = {
+  client: "client-dashboard.html",
+  earner: "earner-dashboard.html",
+  admin:  "admin-dashboard.html",
+  owner:  "platform-space.html"
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function whereTo() {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const user = await account.get();                          // throws 401 when there is no valid session
+      try {
+        const profile = await getUserProfile(user.$id);
+        const role = String(profile.role || "");
+        if (DASH[role]) return DASH[role];
+        if (role === "pending_admin") return "login.html";       // login page explains it and signs that session out
+        return "no_access.html";
+      } catch (e) {
+        if (e && e.code === 404) return "no_access.html";        // signed in, but no profile
+        return "login.html";                                     // profile lookup hiccup: the login page re-checks the session
+      }
+    } catch (e) {
+      if (e && e.code === 401) return "intro.html";              // not signed in
+      if (attempt === 0) await sleep(1500);                      // network blip: try once more
+    }
+  }
+  return "intro.html";
+}
+
+const target = whereTo();
+const started = performance.now();
+setTimeout(async () => {
+  const dest = await Promise.race([target, sleep(8000).then(() => "intro.html")]);   // never hang on a dead connection
+  window.location.replace(dest);
+}, SPLASH_MS);
+</script>
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg",
+      SIZE=34, CSIZE=26, LIFT=5, D=2600, idx=0, busy=false;
+
+  var stock=[].slice.call(document.querySelectorAll(".stock .react")),
+      host=document.getElementById("wHost"),
+      em=document.getElementById("wEm"),
+      move=document.getElementById("wMove"),
+      moveC=document.getElementById("wMoveC"),
+      cnt=document.getElementById("wCount"),
+      reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+
+  function next(){
+    if(!busy) launch(idx++%stock.length);
+  }
+
+  function launch(k){
+    if(reduce || busy || !stock.length) return;
+
+    busy=true;
+
+    var src=stock[k],
+        svg=src.querySelector("svg"),
+        w=svg.viewBox.baseVal.width||24,
+        h=svg.viewBox.baseVal.height||24;
+
+    var counted=src.matches(".like,.heart,.comment,.follow"),
+        s=(counted?CSIZE:SIZE)/w;
+
+    var g=document.createElementNS(NS,"g");
+
+    g.setAttribute(
+      "transform",
+      "translate("+(-w*s/2)+" "+(-h*s/2)+") scale("+s+")"
+    );
+
+    [].forEach.call(svg.childNodes,function(n){
+      g.appendChild(n.cloneNode(true));
+    });
+
+    em.appendChild(g);
+
+    if(counted){
+      var bb=g.getBBox();
+
+      g.setAttribute(
+        "transform",
+        "translate("+
+        (-(bb.x+bb.width/2)*s)+
+        " "+
+        (-LIFT-(bb.y+bb.height/2)*s)+
+        ") scale("+s+")"
+      );
+    }
+
+    host.setAttribute(
+      "class",
+      "wicon "+
+      [].filter.call(src.classList,function(c){
+        return c!=="react";
+      }).join(" ")
+    );
+
+    function kf(rot){
+      return [
+        {
+          offset:0,
+          transform:"translateY(46px) scale(.85) rotate(0deg)",
+          easing:"cubic-bezier(.2,.75,.3,1)"
+        },
+        {
+          offset:.22,
+          transform:"translateY(-3px) scale(1.06) rotate(0deg)",
+          easing:"ease-in-out"
+        },
+        {
+          offset:.30,
+          transform:"translateY(0) scale(1) rotate(0deg)"
+        },
+        {
+          offset:.72,
+          transform:"translateY(0) scale(1) rotate(0deg)",
+          easing:"cubic-bezier(.55,0,.9,.5)"
+        },
+        {
+          offset:.95,
+          transform:"translateY(46px) scale(.85) rotate("+rot+"deg)"
+        },
+        {
+          offset:1,
+          transform:"translateY(46px) scale(.85) rotate("+rot+"deg)"
+        }
+      ];
+    }
+
+    var a=move.animate(kf(360),{
+      duration:D,
+      fill:"both"
+    });
+
+    var ac=moveC.animate(kf(0),{
+      duration:D,
+      fill:"both"
+    });
+
+    setTimeout(function(){
+      host.classList.add("play");
+    },D*.30);
+
+    var ca=null;
+
+    if(src.matches(".like,.heart,.comment,.follow")){
+      cnt.textContent="130";
+
+      ca=cnt.animate(
+        [{opacity:1},{opacity:1}],
+        {duration:D,fill:"both"}
+      );
+
+      var t0=performance.now();
+
+      requestAnimationFrame(function f(now){
+        var p=Math.max(
+          0,
+          Math.min(1,(now-t0)/(D*.92))
+        );
+
+        cnt.textContent=Math.round(130+370*p);
+
+        if(now-t0<D*.9){
+          requestAnimationFrame(f);
+        }
+      });
+    }
+
+    setTimeout(function(){
+      a.cancel();
+      ac.cancel();
+
+      if(ca) ca.cancel();
+
+      em.textContent="";
+      host.setAttribute("class","wicon");
+      cnt.textContent="";
+      busy=false;
+    },D);
+  }
+
+  if(reduce) return;
+
+  setTimeout(function loop(){
+    if(!document.hidden) next();
+    setTimeout(loop,200);
+  },2200);
+
+})();
+</script>
+<script>
+(function(){
+  var C=4, M=24, PAD=44, NS="http://www.w3.org/2000/svg";
+  var BEND=0.5, START=0.4, F=6; // flat middle, ends curl back
+  var lines=document.getElementById("lines"), nodes=document.getElementById("nodes"), pulses=document.getElementById("pulses");
+  function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function lens(gx,gy){
+    var u=gx/C*2-1, v=gy/C*2-1;
+    var ex=Math.max(0,(Math.abs(u)-START)/(1-START)), ey=Math.max(0,(Math.abs(v)-START)/(1-START));
+    var s=F/(F+BEND*(ex*ex+ey*ey));
+    return {x:u*s, y:v*s};
+  }
+  // Only the interior lines (1..C-1) exist; no outer frame lines
+  var lo=1e9,hi=-1e9;
+  for(var a=1;a<C;a++)for(var t=0;t<=C*M;t++){
+    var q=t/M, p1=lens(a,q), p2=lens(q,a);
+    lo=Math.min(lo,p1.x,p1.y,p2.x,p2.y);hi=Math.max(hi,p1.x,p1.y,p2.x,p2.y);
+  }
+  var sc=(400-PAD*2)/(hi-lo), mid=(hi+lo)/2;
+  function pos(gx,gy){var p=lens(gx,gy);return {x:200+(p.x-mid)*sc,y:200+(p.y-mid)*sc};}
+  function fmt(pts){return pts.map(function(p){return p.x.toFixed(2)+","+p.y.toFixed(2);}).join(" ");}
+  var i,j,s,pts;
+  for(a=1;a<C;a++){
+    pts=[];for(s=0;s<=C*M;s++)pts.push(pos(s/M,a));lines.appendChild(el("polyline",{points:fmt(pts)}));
+    pts=[];for(s=0;s<=C*M;s++)pts.push(pos(a,s/M));lines.appendChild(el("polyline",{points:fmt(pts)}));
+  }
+  for(i=1;i<C;i++)for(j=1;j<C;j++){var n=pos(i,j);nodes.appendChild(el("circle",{cx:n.x,cy:n.y,r:1}));}
+})();
+</script>
+</body>
+</html>

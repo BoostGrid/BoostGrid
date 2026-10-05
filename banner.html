@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BoostGrid — Notice banner</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/global.css">
+<!-- reusable notice banner (announcement / promotion), same look as the client welcome banner; lib/notice.js
+     fetches this file, copies <style id="nbStyle"> and <template id="nbTpl"> into the requesting page, then
+     fills the slots; open it directly to preview -->
+<style id="nbStyle">
+.nb-layer{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:20px; }
+.nb-scrim{ position:absolute; inset:0; background:rgba(5,16,12,.5); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); opacity:0; transition:opacity .3s var(--ease, ease); }
+.nb-card{ position:relative; width:100%; max-width:400px; max-height:calc(100svh - 40px); display:flex; flex-direction:column; overflow:hidden;
+  background:var(--surface,#fff); color:var(--text,#0d1f17); border:1px solid var(--border,#dceee5); border-radius:var(--radius-lg,22px);
+  box-shadow:var(--shadow), 0 40px 80px -24px rgba(5,16,12,.55), 0 0 0 1px color-mix(in srgb, var(--brand,#00cc88) 14%, transparent);
+  opacity:0; transform:translateY(22px) scale(.92); transition:opacity .25s var(--ease, ease), transform .45s var(--spring, cubic-bezier(.34,1.56,.64,1)); }
+.nb-layer.in .nb-scrim{ opacity:1; }
+.nb-layer.in .nb-card{ opacity:1; transform:none; }
+.nb-layer:not(.in) .nb-card{ transition:opacity .18s ease, transform .2s ease; transform:scale(.95); }
+
+.nb-hero{ position:relative; flex:0 0 auto; min-height:170px; padding:56px 24px 22px; display:flex; align-items:flex-end; overflow:hidden; color:#04140d;
+  background:radial-gradient(120% 140% at 100% 0%, rgba(255,255,255,.35) 0%, transparent 45%), linear-gradient(135deg, var(--brand,#00cc88) 0%, var(--brand-deep,#00a873) 100%); }
+.nb-hero::before{ content:""; position:absolute; z-index:1; border-radius:50%; pointer-events:none; width:210px; height:210px; right:-64px; top:-96px; border:28px solid rgba(255,255,255,.16); }
+.nb-copy{ position:relative; z-index:2; min-width:0; }
+.nb-k-announcement .nb-copy, .nb-k-promotion .nb-copy{ padding-right:120px; }
+
+.nb-eyebrow{ display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:13px; font-weight:600; opacity:.78; }
+.nb-eyebrow svg{ width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.nb-title{ margin:0; font-family:'Unbounded', system-ui, sans-serif; font-size:24px; font-weight:700; line-height:1.18; letter-spacing:-.02em; text-wrap:balance; overflow-wrap:break-word; word-break:normal; hyphens:none; }
+
+/* art on the right built from layered CSS (no SVG): megaphone = announcement, gift = promotion, other kinds none */
+.nb-art{ display:none; position:absolute; z-index:1; width:150px; height:150px; pointer-events:none; transform:rotate(var(--r,0deg)) scale(var(--sc,1)); }
+.nb-art i{ position:absolute; display:block; }
+.nb-k-announcement .nb-art-a{ display:block; right:16px; bottom:-6px; --r:-14deg; filter:drop-shadow(0 12px 12px rgba(4,20,13,.38)); }
+.nb-k-promotion .nb-art-p{ display:block; right:-2px; bottom:-14px; --r:15deg; filter:drop-shadow(0 12px 12px rgba(4,20,13,.38)); }
+
+/* gift */
+.g-body{ left:26px; top:68px; width:98px; height:68px; border-radius:9px;
+  background:linear-gradient(160deg, rgba(255,150,196,.96), rgba(212,48,106,.95));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.5), inset 9px 0 14px rgba(255,255,255,.16), inset -10px 0 16px rgba(110,8,48,.35), inset 0 -14px 20px rgba(110,8,48,.45); }
+.g-lid{ left:17px; top:50px; width:116px; height:28px; border-radius:9px;
+  background:linear-gradient(170deg, rgba(255,176,212,.98), rgba(232,76,130,.96));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.65), inset 0 -6px 10px rgba(120,10,52,.35), 0 9px 12px -3px rgba(80,0,32,.5); }
+.g-rib{ left:62px; top:50px; width:26px; height:86px; border-radius:3px 3px 9px 9px;
+  background:linear-gradient(90deg, rgba(255,196,64,.9), rgba(255,243,184,.96) 48%, rgba(255,184,48,.9));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35), inset 0 -10px 14px rgba(170,100,0,.35), 2px 0 6px rgba(80,0,32,.25); }
+.g-loop{ top:16px; width:54px; height:40px; border-radius:50%; border:9px solid rgba(255,206,84,.92); background:rgba(255,214,110,.16);
+  box-shadow:inset 0 3px 4px rgba(255,255,255,.65), inset 0 -4px 6px rgba(160,92,0,.45), 0 5px 7px rgba(80,0,32,.35); }
+.g-loop.l{ left:28px; transform:rotate(-26deg); }
+.g-loop.r{ left:68px; transform:rotate(26deg); }
+.g-knot{ left:62px; top:38px; width:26px; height:22px; border-radius:8px;
+  background:linear-gradient(160deg, #ffe7a1, #ffb52e); box-shadow:inset 0 2px 0 rgba(255,255,255,.7), inset 0 -4px 6px rgba(160,92,0,.5), 0 4px 6px rgba(80,0,32,.4); }
+
+/* megaphone */
+.m-handle{ left:30px; top:88px; width:20px; height:42px; border-radius:8px; transform:rotate(-14deg);
+  background:linear-gradient(90deg, rgba(70,40,60,.95), rgba(150,110,130,.9) 45%, rgba(60,34,52,.95));
+  box-shadow:inset 0 2px 2px rgba(255,255,255,.35), inset 0 -6px 8px rgba(0,0,0,.4); }
+.m-back{ left:6px; top:54px; width:34px; height:44px; border-radius:12px;
+  background:linear-gradient(160deg, #ff8f80, #dd3f36);
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.5), inset 0 -8px 12px rgba(100,0,0,.45), inset 6px 0 8px rgba(255,255,255,.15); }
+.m-cone{ left:30px; top:26px; width:70px; height:92px; clip-path:polygon(0 32%, 100% 0, 100% 100%, 0 68%);
+  background:linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 30%, rgba(160,70,0,.3) 100%), linear-gradient(100deg, #ffe27a, #ffb82e 58%, #ff9a16); }
+.m-rim{ left:88px; top:20px; width:28px; height:104px; border-radius:50%;
+  background:linear-gradient(100deg, #ff8f80, #d83a30 70%);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.3), inset -6px 0 10px rgba(100,0,0,.5), 3px 0 8px rgba(80,0,0,.3); }
+.m-mouth{ left:98px; top:30px; width:14px; height:84px; border-radius:50%;
+  background:linear-gradient(90deg, #4a0707, #b8322a);
+  box-shadow:inset 3px 0 6px rgba(0,0,0,.6), inset -2px 0 3px rgba(255,170,150,.4); }
+.m-wave{ border:5px solid transparent; border-right-color:rgba(255,255,255,.88); border-radius:50%; box-shadow:2px 0 6px rgba(255,255,255,.35); }
+.m-wave.w1{ left:114px; top:56px; width:30px; height:30px; }
+.m-wave.w2{ left:112px; top:46px; width:46px; height:50px; border-right-color:rgba(255,255,255,.5); }
+
+.nb-x{ position:absolute; top:14px; right:14px; z-index:3; width:32px; height:32px; padding:0; border-radius:50%; border:1px solid rgba(255,255,255,.35);
+  background:rgba(4,20,13,.32); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px); transition:transform .25s var(--spring, ease); }
+.nb-x:active{ transform:scale(.88); }
+.nb-x svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.4; stroke-linecap:round; }
+
+.nb-body{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:20px 22px 6px; }
+.nb-text p{ margin:0 0 .9em; font-size:14.5px; line-height:1.65; white-space:pre-wrap; overflow-wrap:anywhere; }
+.nb-text p:last-child{ margin-bottom:0; }
+.nb-time{ margin:14px 0 0; font-size:11.5px; color:var(--text-dim,#5b7268); }
+.nb-time:empty{ display:none; }
+.nb-foot{ flex:0 0 auto; padding:14px 22px 22px; }
+.nb-btn{ width:100%; border:1px solid transparent; border-radius:var(--radius-sm,12px); padding:13px 10px; font-family:'Space Grotesk', system-ui, sans-serif; font-size:14px; font-weight:700; cursor:pointer;
+  color:#04140d; background:linear-gradient(135deg, var(--brand,#00cc88), var(--brand-deep,#00a873)); box-shadow:0 10px 24px -8px color-mix(in srgb, var(--brand,#00cc88) 55%, transparent); transition:transform .28s var(--spring, ease); }
+.nb-btn:active{ transform:scale(.96); }
+.nb-btn:focus-visible, .nb-x:focus-visible{ outline:2px solid var(--brand,#00cc88); outline-offset:2px; }
+@media (max-width:520px){ .nb-art{ --sc:.86; } .nb-k-announcement .nb-copy, .nb-k-promotion .nb-copy{ padding-right:108px; } }
+@media (min-width:1024px){ .nb-card{ max-width:460px; } }
+@media (prefers-reduced-motion:reduce){ .nb-card, .nb-scrim{ transition:none; } }
+
+/* preview page only (harmless elsewhere: only .pv uses it) */
+.pv{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:24px; font-family:'Space Grotesk', system-ui, sans-serif; }
+.pv h1{ margin:0 0 6px; font-size:18px; } .pv button{ width:220px; } 
+</style>
+</head>
+<body>
+
+<template id="nbTpl">
+  <div class="nb-layer" role="dialog" aria-modal="true" aria-labelledby="nbTitle">
+    <div class="nb-scrim" data-nb="scrim"></div>
+    <div class="nb-card">
+      <div class="nb-hero">
+        <div class="nb-copy">
+          <p class="nb-eyebrow"><svg data-nb="icon" viewBox="0 0 24 24"></svg><span data-nb="eyebrow"></span></p>
+          <h2 class="nb-title" id="nbTitle" data-nb="title"></h2>
+        </div>
+        <div class="nb-art nb-art-a" aria-hidden="true"><i class="m-handle"></i><i class="m-back"></i><i class="m-cone"></i><i class="m-rim"></i><i class="m-mouth"></i><i class="m-wave w2"></i><i class="m-wave w1"></i></div>
+        <div class="nb-art nb-art-p" aria-hidden="true"><i class="g-body"></i><i class="g-rib"></i><i class="g-lid"></i><i class="g-loop l"></i><i class="g-loop r"></i><i class="g-knot"></i></div>
+      </div>
+      <button class="nb-x" type="button" data-nb="close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="nb-body">
+        <div class="nb-text" data-nb="text"></div>
+        <p class="nb-time" data-nb="time"></p>
+      </div>
+      <div class="nb-foot"><button class="nb-btn" type="button" data-nb="done">Got it</button></div>
+    </div>
+  </div>
+</template>
+
+<!-- live preview when this file is opened on its own -->
+<div class="pv" id="pv" hidden>
+  <h1>Notice banner preview</h1>
+  <button class="nb-btn" type="button" id="pvA">Announcement</button>
+  <button class="nb-btn" type="button" id="pvP">Promotion</button>
+  <button class="nb-btn" type="button" id="pvT">Dark / light</button>
+</div>
+<script src="lib/notice.js"></script>
+<script>
+  if (window.top === window.self) {
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    document.getElementById('pv').hidden = false;
+    var body = 'Hello from the BoostGrid team.\n\nThis is how a longer message reads in the banner. Paragraphs keep their spacing, and long text scrolls inside the card.';
+    pvA.onclick = function () { NoticeCard.show({ kind: 'announcement', title: 'Platform update', body: body, time: new Date().toLocaleString() }); };
+    pvP.onclick = function () { NoticeCard.show({ kind: 'promotion', title: 'Lower project fees this week', body: 'Deposit this week and enjoy a lower project fee.', time: new Date().toLocaleString() }); };
+    pvT.onclick = function () { var d = document.body.classList.toggle('dark'); localStorage.setItem('theme', d ? 'dark' : 'light'); };
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim owner access</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Poppins',system-ui,sans-serif;background:#f4f4f4;color:#111}
+  .card{width:100%;max-width:380px;background:#fff;border-radius:16px;padding:26px 22px;box-shadow:0 4px 14px rgba(0,0,0,.08);text-align:center}
+  h1{font-size:20px;margin:0 0 8px}
+  p{font-size:13.5px;line-height:1.55;color:#555;margin:0 0 18px}
+  button{width:100%;padding:13px;border:0;border-radius:10px;background:#00cc88;color:#fff;font-weight:600;font-size:14.5px;cursor:pointer}
+  button:disabled{opacity:.6;cursor:default}
+  #msg{margin-top:14px;font-size:13px;min-height:18px}
+  #msg.err{color:#d94848} #msg.ok{color:#047857}
+  @media (prefers-color-scheme: dark){body{background:#0e1512;color:#eaf3ee}.card{background:#16201b}p{color:#9db3a8}}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Claim owner access</h1>
+  <p>Sign up and verify your email first, then log in and open this page. Only the owner emails set on the server can claim access.</p>
+  <button id="claimBtn" type="button">Claim owner access</button>
+  <div id="msg" role="status"></div>
+</div>
+<script type="module">
+import { account, callFunction, FUNCTIONS } from "./lib/appwrite-config.js";
+const btn = document.getElementById("claimBtn"), msg = document.getElementById("msg");
+const say = (t, cls) => { msg.textContent = t; msg.className = cls || ""; };
+try { await account.get(); } catch { window.location.href = "login.html?redirect=claim-owner.html"; }
+btn.addEventListener("click", async () => {
+  btn.disabled = true; say("Checking…");
+  try {
+    await callFunction(FUNCTIONS.LEDGER_OPS, { action: "claim-owner" });
+    say("Done. Opening the owner dashboard…", "ok");
+    setTimeout(() => { window.location.href = "platform-space.html"; }, 900);
+  } catch (err) {
+    btn.disabled = false;
+    say(err.message || "Could not claim owner access.", "err");
+  }
+});
+</script>
+</body>
+</html>

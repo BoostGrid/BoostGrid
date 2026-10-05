@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — BoostGrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+<style>
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; min-height:100vh;
+    background:var(--bg); color:var(--text);
+    font-family:'Sora', system-ui, sans-serif; line-height:1.7;
+    transition:background .35s var(--ease), color .35s var(--ease);
+    background-image:radial-gradient(900px 340px at 50% -120px, var(--brand-soft), transparent 70%);
+    background-repeat:no-repeat;
+  }
+
+  /* theme toggle: the shared .theme-toggle from css/theme.css, pinned top-right */
+  #themeToggle{ position:fixed; top:calc(14px + env(safe-area-inset-top,0px)); right:14px; z-index:10; }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:64px 18px 48px; }
+
+  h1{
+    margin:0 0 10px; text-align:center;
+    font-family:'Space Grotesk', system-ui, sans-serif;
+    font-size:clamp(26px, 6vw, 36px); line-height:1.15; letter-spacing:-.02em;
+  }
+  .updated{
+    display:block; width:max-content; max-width:100%; margin:0 auto 26px; padding:6px 14px;
+    font-size:12px; font-weight:600; color:var(--brand-deep);
+    background:var(--brand-soft); border:1px solid var(--border); border-radius:999px;
+  }
+  body.dark .updated{ color:var(--brand); }
+
+  p{ margin:0 0 14px; font-size:14px; color:var(--text-dim); }
+  p strong, li strong{ color:var(--text); font-weight:600; }
+  a{ color:var(--brand-deep); font-weight:600; text-decoration:none; overflow-wrap:anywhere; }
+  a:hover{ text-decoration:underline; }
+  body.dark a{ color:var(--brand); }
+
+  .note{
+    margin:20px 0 28px; padding:16px 18px; font-size:13px; line-height:1.65; color:var(--text-dim);
+    background:var(--brand-soft); border:1px solid var(--border); border-left:4px solid var(--brand);
+    border-radius:var(--radius-md);
+  }
+
+  h2{
+    display:flex; align-items:center; gap:10px; margin:34px 0 14px;
+    font-family:'Space Grotesk', system-ui, sans-serif;
+    font-size:18px; line-height:1.3; letter-spacing:-.01em; color:var(--text);
+  }
+  h2::after{ content:""; flex:1; height:1px; background:var(--border); }
+
+  ul{ list-style:none; margin:0 0 18px; padding:6px 16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow); }
+  li{ position:relative; padding:11px 0 11px 22px; font-size:13.5px; line-height:1.65; color:var(--text-dim); overflow-wrap:anywhere; }
+  li + li{ border-top:1px dashed var(--border); }
+  li::before{ content:""; position:absolute; left:2px; top:19px; width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg, var(--brand), var(--brand-deep)); }
+
+  .back{
+    display:block; width:max-content; margin:34px auto 0; padding:10px 20px;
+    font-size:13px; font-weight:600; color:var(--text); text-decoration:none;
+    background:var(--surface); border:1px solid var(--border); border-radius:999px;
+    transition:transform .25s var(--spring), border-color .2s;
+  }
+  .back:hover{ border-color:var(--brand); text-decoration:none; }
+  .back:active{ transform:scale(.95); }
+
+  @media (min-width:700px){
+    .wrap{ padding-top:80px; }
+    p{ font-size:14.5px; }
+    li{ font-size:14px; }
+    ul{ padding:6px 22px; }
+  }
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode"><span class="knob"><svg id="themeIcon" viewBox="0 0 24 24"></svg></span></button>
+<div class="wrap">
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: August 23 2026</p>
+
+  <p>
+    BoostGrid is built and operated by Cenova Global (see
+    <a href="aboutCompany.html">About Cenova Global</a>). This page
+    explains what information BoostGrid collects, why, and what you can
+    do about it.
+  </p>
+
+  <div class="note">
+    This is a plain-language description of what the app actually
+    does, written directly from its code and data flows — not a
+    generic template. It isn't legal advice, and as BoostGrid grows, we
+    recommend having a lawyer review and formalize it further.
+  </div>
+
+  <h2>1. Information we collect</h2>
+  <p><strong>Account information</strong> (collected at signup):</p>
+  <ul>
+    <li>Name, email address, and password (your password is never stored in plain text — it's handled by our authentication provider, Appwrite, using industry-standard hashing)</li>
+    <li>A nickname you choose, and a short bio if you sign up as an admin</li>
+    <li>Your account role — client, earner, or admin at signup; "owner" is an internal role for the platform operator, not something you can sign up as</li>
+  </ul>
+
+  <p><strong>Financial information</strong> (only if you deposit or withdraw funds):</p>
+  <ul>
+    <li>Your wallet balance on the platform</li>
+    <li>Bank account name, account number, and bank name, submitted by you when requesting a withdrawal — used solely to send your payout</li>
+    <li>Deposit/withdrawal amounts and transaction references</li>
+  </ul>
+  <p>
+    We do not collect or store your card number, card PIN, or online
+    banking password. Deposits and payouts are processed by
+    <strong>Paystack</strong> and <strong>Flutterwave</strong>, who
+    handle that information directly under their own security and
+    compliance programs. We only receive confirmation that a payment
+    succeeded (and the amount), which we verify against their records
+    before crediting your wallet.
+  </p>
+
+  <p><strong>Task and project information</strong> (if you create or complete tasks):</p>
+  <ul>
+    <li>Project/task titles, descriptions, links, and reward amounts you enter</li>
+    <li>When completing a task, the social media platform and profile/handle you submit for verification, and any file/screenshot you upload as proof</li>
+  </ul>
+
+  <p><strong>Referral information:</strong> your referral code, who referred you (if anyone), and how many people you've referred.</p>
+
+  <h2>2. Why we collect it</h2>
+  <ul>
+    <li>To create and secure your account, and show you the right dashboard for your role</li>
+    <li>To process deposits and withdrawals, and prevent fraudulent transactions</li>
+    <li>To connect clients with earners and track task/project progress</li>
+    <li>To calculate and pay referral rewards</li>
+    <li>To moderate the platform — for example, tasks can be flagged, and accounts with excessive flags are restricted, to keep the platform fair for everyone</li>
+  </ul>
+
+  <h2>3. Who we share it with</h2>
+  <p>We don't sell your data. We share the minimum necessary with:</p>
+  <ul>
+    <li><strong>Appwrite</strong> — hosts our authentication and database (where your account and platform data live)</li>
+    <li><strong>Paystack</strong> and <strong>Flutterwave</strong> — process deposits and withdrawals</li>
+    <li>Other users, where the platform is designed to show it — e.g. a client sees the name of the admin managing their project, and vice versa; task proof/screenshots you submit are visible to the admin reviewing that task</li>
+  </ul>
+
+  <h2>4. How long we keep it</h2>
+  <p>
+    We keep your account data while your account is active. Financial
+    records (deposits, withdrawals, transaction references) are kept
+    longer, since we may need them for fraud investigation, dispute
+    resolution, or if required by payment processors or, eventually,
+    financial regulation.
+  </p>
+
+  <h2>5. Your choices</h2>
+  <ul>
+    <li>You can update your profile info (name, nickname, bio, profile picture) at any time from your dashboard</li>
+    <li>You can request a copy of your data, or ask us to delete your account, by emailing us (below) — note that we may need to retain some financial records even after a deletion request, for the reasons in section 4</li>
+  </ul>
+
+  <h2>6. Security</h2>
+  <p>
+    All pages are served over HTTPS. Authentication and password
+    handling are managed by Appwrite. Sensitive financial actions
+    (verifying deposits, paying withdrawals, moving wallet balances)
+    run through server-side functions rather than directly from your
+    browser, so they can't be tampered with by manipulating the app.
+  </p>
+
+  <h2>7. Children</h2>
+  <p>
+    BoostGrid is not intended for anyone under 18. Signing up requires
+    a bank account for withdrawals and involves real money, so it
+    isn't designed or suitable for children, regardless of local age
+    of majority. If we learn that an account belongs to a child, we
+    will take steps to remove it.
+  </p>
+
+  <h2>8. Changes to this policy</h2>
+  <p>
+    If this policy changes in a way that matters, we'll update the
+    date at the top of this page and let you know through the app.
+  </p>
+
+  <h2>9. Contact</h2>
+  <p>
+    Questions about this policy or your data? Email
+    <a href="mailto:boostgrid1@gmail.com">boostgrid1@gmail.com</a>.
+  </p>
+
+  <a class="back" href="javascript:history.back()">&larr; Back</a>
+</div>
+<script>
+  (function () {
+    var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+    var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+    var btn = document.getElementById("themeToggle"), icon = document.getElementById("themeIcon");
+    function applyTheme(dark) {
+      document.body.classList.toggle("dark", dark);
+      icon.innerHTML = dark ? SUN : MOON;
+    }
+    var saved = null;
+    try { saved = localStorage.getItem("sh-theme") || localStorage.getItem("theme"); } catch (e) {}
+    applyTheme(saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+    btn.addEventListener("click", function () {
+      var dark = !document.body.classList.contains("dark");
+      applyTheme(dark);
+      try { localStorage.setItem("sh-theme", dark ? "dark" : "light"); localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

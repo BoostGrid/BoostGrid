@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log in · BoostGrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ margin:0; min-height:100%; }
+body{
+  min-height:100dvh; color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  transition:background .35s var(--ease), color .35s var(--ease);
+  background:radial-gradient(120% 55% at 50% 0%, var(--brand-soft) 0%, transparent 60%), var(--bg);
+}
+h1,h3{ font-family:'Sora',system-ui,sans-serif; letter-spacing:-.02em; margin:0; }
+
+.page{ width:100%; max-width:440px; margin:0 auto; padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(28px + env(safe-area-inset-bottom,0px)); min-height:100dvh; display:flex; flex-direction:column; }
+.top{ display:flex; align-items:center; justify-content:space-between; }
+.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+.brand .wm{ margin-left: -6px; height:30px; width:auto; display:block; }
+.brand span{ font:700 16px 'Sora',system-ui,sans-serif; letter-spacing:-.02em; }
+
+.head{ margin:34px 0 6px; }
+.head h1{ font-size:26px; line-height:1.2; }
+.head p{ margin:8px 0 0; font-size:13.5px; line-height:1.5; color:var(--text-dim); }
+
+/* underline fields (same as signup) */
+.wd-f{ position:relative; margin:26px 4px 6px; }
+.wd-f input{
+  display:block; width:100%; height:56px; padding:24px 44px 6px 0;
+  font:500 17px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:var(--text);
+  background:transparent; border:0; border-bottom:1px solid var(--border-strong); border-radius:0;
+  outline:none; -webkit-appearance:none; appearance:none; transition:border-color .25s var(--ease);
+}
+.wd-f input::placeholder{ color:transparent; }
+.wd-f input:-webkit-autofill{ -webkit-text-fill-color:var(--text); transition:background-color 9999s ease-out 0s; }
+.wd-f label{
+  position:absolute; left:0; top:18px; line-height:20px; font-size:14px; font-weight:500; color:var(--text-dim);
+  transform-origin:left top; pointer-events:none; transition:transform .32s var(--ease), color .2s var(--ease);
+}
+.wd-f input:focus ~ label,
+.wd-f input:not(:placeholder-shown) ~ label{ transform:translateY(-19px) scale(.8); }
+.wd-f input:focus ~ label{ color:var(--brand-deep); }
+body.dark .wd-f input:focus ~ label{ color:var(--brand); }
+.wd-f::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--brand); transform:scaleX(0); transform-origin:left; transition:transform .4s var(--ease); pointer-events:none; }
+.wd-f:focus-within::after{ transform:scaleX(1); }
+.wd-f input.invalid{ border-bottom-color:var(--danger); }
+.wd-f input.invalid ~ label{ color:var(--danger); }
+.wd-f:has(input.invalid)::after{ background:var(--danger); transform:scaleX(1); }
+.eye{ position:absolute; right:-6px; bottom:8px; width:38px; height:38px; display:grid; place-items:center; border:0; background:transparent; cursor:pointer; color:var(--text-dim); border-radius:50%; }
+.eye:focus-visible{ outline:2px solid var(--brand); }
+.eye svg{ width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.vf{ margin:0 4px; min-height:20px; font-size:12.5px; font-weight:600; line-height:1.4; color:var(--text-dim); }
+.vf.err{ color:var(--danger); }
+.vf.ok{ color:var(--brand-deep); } body.dark .vf.ok{ color:var(--brand); }
+
+.row{ display:flex; justify-content:flex-end; margin:4px 4px 0; }
+.link{ background:none; border:0; padding:6px 0; font:600 13px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:var(--brand-deep); cursor:pointer; text-decoration:none; }
+body.dark .link{ color:var(--brand); }
+.link:hover{ text-decoration:underline; }
+.link:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; border-radius:4px; }
+
+.go{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:54px; margin-top:20px;
+  border:0; border-radius:var(--radius-sm); cursor:pointer; font:700 15px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:#04140d;
+  background:linear-gradient(135deg,var(--brand),var(--brand-deep)); box-shadow:0 8px 20px color-mix(in srgb, var(--brand) 32%, transparent);
+  transition:transform .2s var(--spring), opacity .2s var(--ease), box-shadow .2s var(--ease);
+}
+.go:active:not(:disabled){ transform:scale(.97); }
+.go:disabled{ opacity:.55; cursor:not-allowed; box-shadow:none; }
+.go:focus-visible{ outline:2px solid var(--brand); outline-offset:3px; }
+.go svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+.spin{ width:18px; height:18px; border:2.5px solid rgba(4,20,13,.25); border-top-color:#04140d; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.formerr{ margin:14px 4px 0; font-size:13px; line-height:1.45; font-weight:600; color:var(--danger); text-align:center; }
+.formerr:empty{ display:none; }
+.formerr.ok{ color:var(--brand-deep); } body.dark .formerr.ok{ color:var(--brand); }
+.formerr a{ color:inherit; text-decoration:underline; }
+.back{ margin-top:10px; text-align:center; }
+
+.foot{ margin:auto 0 0; padding-top:22px; text-align:center; font-size:13.5px; color:var(--text-dim); }
+.foot a{ color:var(--brand-deep); font-weight:600; text-decoration:none; margin-left:4px; }
+body.dark .foot a{ color:var(--brand); }
+.foot a:hover{ text-decoration:underline; }
+
+/* checking-session splash */
+.splash{ position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:var(--bg); }
+.splash[hidden]{ display:none; }
+.splash-spin{
+  width:72px;
+  height:72px;
+  margin:0 auto;
+  filter:url(#splashGoo);
+}
+
+.splash-rot{
+  position:relative;
+  width:100%;
+  height:100%;
+  animation:splashSpin 4s infinite;
+}
+
+.splash-dot{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:16px;
+  height:16px;
+  margin:-8px 0 0 -8px;
+  border-radius:50%;
+  background:var(--brand);
+}
+
+.splash-a{
+  animation:splashA 4s infinite;
+}
+
+.splash-b{
+  animation:splashB 4s infinite;
+}
+
+@keyframes splashSpin{
+  0%,20%{
+    transform:rotate(0);
+    animation-timing-function:ease-in-out;
+  }
+  70%,100%{
+    transform:rotate(720deg);
+  }
+}
+
+@keyframes splashA{
+  0%,7.5%{
+    transform:translateX(0);
+    animation-timing-function:cubic-bezier(.3,.1,.3,1);
+  }
+  20%,77.5%{
+    transform:translateX(-14px);
+    animation-timing-function:cubic-bezier(.6,0,.4,1);
+  }
+  92.5%,100%{
+    transform:translateX(0);
+  }
+}
+
+@keyframes splashB{
+  0%,7.5%{
+    transform:translateX(0);
+    animation-timing-function:cubic-bezier(.3,.1,.3,1);
+  }
+  20%,77.5%{
+    transform:translateX(14px);
+    animation-timing-function:cubic-bezier(.6,0,.4,1);
+  }
+  92.5%,100%{
+    transform:translateX(0);
+  }
+}
+
+.view[hidden]{ display:none; }
+.view{ animation:rise .45s var(--ease) both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+@media (prefers-reduced-motion:reduce){ .view{ animation:none; } }
+  .wm{--wm-b1:#0d1f17;--wm-b2:#1f6b50;--wm-g1:#00cc88;--wm-g2:#00a873;--wm-g3:#008a5e;--wm-u:#00a873;--wm-flame:#ff9a3c;--wm-hi:#ffffff;--wm-core:#0d1f17;} body.dark .wm{--wm-b1:#ffffff;--wm-b2:#b6ffe2;--wm-g1:#7dffd0;--wm-g2:#00e6a0;--wm-g3:#00b880;--wm-u:#00e6a0;--wm-flame:#ffb86b;--wm-hi:#ffffff;--wm-core:#04100b;} .wm .wm-glow{filter:none} body.dark .wm .wm-glow{filter:url(#lgGlow)}
+</style>
+</head>
+
+<body>
+<div class="splash" id="splash">
+  <div class="splash-spin" role="status" aria-label="Checking your session">
+    <div class="splash-rot">
+      <span class="splash-dot splash-a"></span>
+      <span class="splash-dot splash-b"></span>
+    </div>
+  </div>
+</div>
+<div class="page">
+  <div class="top">
+    <a class="brand" href="intro.html" aria-label="BoostGrid home"><svg class="wm" viewBox="48 2 246 52" role="img" aria-label="BoostGrid"><defs>
+      <linearGradient id="lgB" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" style="stop-color:var(--wm-b1)"/><stop offset="1" style="stop-color:var(--wm-b2)"/></linearGradient>
+      <linearGradient id="lgG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" style="stop-color:var(--wm-g1)"/><stop offset=".55" style="stop-color:var(--wm-g2)"/><stop offset="1" style="stop-color:var(--wm-g3)"/></linearGradient>
+      <linearGradient id="lgL" gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="285" y2="0"><stop offset="0" style="stop-color:var(--wm-u);stop-opacity:0"/><stop offset="1" style="stop-color:var(--wm-u)"/></linearGradient>
+      <filter id="lgGlow" x="-20%" y="-30%" width="140%" height="160%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g class="wm-glow">
+      <!-- letters drawn by hand as sharp, chamfered strokes (no font) -->
+      <g transform="translate(56 12) skewX(-8)" fill="none" stroke-width="5" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6">
+        <g stroke="url(#lgB)"><path transform="translate(0 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M16 14.5L19.5 18V24.5L14.5 29.5H2.5"/><path transform="translate(27 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(54 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(81 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V11L7 14.5H15L19.5 18V24.5L14.5 29.5H7.5L2.5 24.5"/><path transform="translate(108 0)" d="M2.5 2.5H19.5M11 2.5V29.5"/></g>
+        <g stroke="url(#lgG)"><path transform="translate(140 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V24.5L7.5 29.5H14.5L19.5 24.5V16H11"/><path transform="translate(167 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M12 14.5L19.5 29.5"/><path transform="translate(213 0)" d="M2.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H2.5Z"/></g>
+        <g transform="translate(194 0)" stroke="none">
+          <path d="M4.8 25L7 32L9.2 25Z" style="fill:var(--wm-flame)"/><path d="M6 25L7 29L8 25Z" style="fill:var(--wm-hi)"/>
+          <path d="M2.6 17L-.6 26.5L2.6 25ZM11.4 17L14.6 26.5L11.4 25Z" fill="url(#lgG)"/>
+          <path d="M2.6 12.5H11.4V25H2.6Z" fill="url(#lgB)"/>
+          <path d="M7 0C10.2 3.6 11.4 7.6 11.4 12.5H2.6C2.6 7.6 3.8 3.6 7 0Z" fill="url(#lgG)"/>
+          <circle cx="7" cy="18.6" r="2.6" fill="url(#lgG)"/><circle cx="7" cy="18.6" r="1.6" style="fill:var(--wm-core)"/>
+        </g>
+      </g>
+      <path d="M56 47H285" stroke="url(#lgL)" stroke-width="2"/>
+    </g>
+  </svg></a>
+  </div>
+
+  <section class="view" id="vLogin" aria-labelledby="tLogin">
+    <div class="head">
+      <h1 id="tLogin">Welcome back</h1>
+      <p>Log in to pick up where you left off.</p>
+    </div>
+    <form id="loginForm" novalidate>
+      <div class="wd-f">
+        <input id="email" name="email" type="email" placeholder=" " autocomplete="username" inputmode="email" maxlength="255" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">
+        <label for="email">Email address</label>
+      </div>
+      <div class="wd-f">
+        <input id="password" name="password" type="password" placeholder=" " autocomplete="current-password" maxlength="128" enterkeyhint="go">
+        <label for="password">Password</label>
+        <button type="button" class="eye" id="eye" aria-label="Show password"></button>
+      </div>
+      <div class="row"><button type="button" class="link" id="forgotBtn">Forgot password?</button></div>
+      <button class="go" id="loginBtn" type="submit"><span>Log in</span></button>
+    </form>
+    <p class="formerr" id="loginErr" role="alert"></p>
+  </section>
+
+  <section class="view" id="vForgot" aria-labelledby="tForgot" hidden>
+    <div class="head">
+      <h1 id="tForgot">Reset your password</h1>
+      <p>Enter your email and we'll send you a link to choose a new password.</p>
+    </div>
+    <form id="forgotForm" novalidate>
+      <div class="wd-f">
+        <input id="fEmail" type="email" placeholder=" " autocomplete="email" inputmode="email" maxlength="255" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="send">
+        <label for="fEmail">Email address</label>
+      </div>
+      <button class="go" id="forgotGo" type="submit"><span>Send reset link</span></button>
+    </form>
+    <p class="formerr" id="forgotErr" role="alert"></p>
+    <div class="back"><button type="button" class="link" id="backBtn1">Back to log in</button></div>
+  </section>
+
+  <!-- 3. choose a new password (arrived from the emailed link) -->
+  <section class="view" id="vReset" aria-labelledby="tReset" hidden>
+    <div class="head">
+      <h1 id="tReset">Choose a new password</h1>
+      <p>At least 8 characters, with letters and a number.</p>
+    </div>
+    <form id="resetForm" novalidate>
+      <div class="wd-f">
+        <input id="nPass" type="password" placeholder=" " autocomplete="new-password" maxlength="128">
+        <label for="nPass">New password</label>
+      </div>
+      <div class="wd-f">
+        <input id="nPass2" type="password" placeholder=" " autocomplete="new-password" maxlength="128" enterkeyhint="done">
+        <label for="nPass2">Confirm new password</label>
+      </div>
+      <div class="vf" id="resetMsg"></div>
+      <button class="go" id="resetGo" type="submit"><span>Save new password</span></button>
+    </form>
+    <p class="formerr" id="resetErr" role="alert"></p>
+    <div class="back"><button type="button" class="link" id="backBtn2">Back to log in</button></div>
+  </section>
+
+  <p class="foot">New to BoostGrid?<a href="signup.html">Create an account</a></p>
+</div>
+
+<script type="module">
+import { account, getUserProfile } from "./lib/appwrite-config.js";
+
+/* Config: where each role lands, and which pages a ?redirect= may reach */
+const DASH = {
+  client: "client-dashboard.html",
+  earner: "earner-dashboard.html",
+  admin:  "admin-dashboard.html",
+  owner:  "platform-space.html"
+};
+// pages anyone signed in may be sent back to
+const OPEN_PAGES = ["contact.html", "faq.html", "claim-owner.html"];
+
+const ICON = {
+  eye:   '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:'<svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.2"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4.4-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>',
+  sun:   '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:  '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* Theme (follows the saved choice, else the device setting; no toggle on this page) */
+function applyTheme(dark) {
+  document.body.classList.toggle("dark", dark);
+}
+let saved = null;
+try { saved = localStorage.getItem("sh-theme") || localStorage.getItem("theme"); } catch (e) {}
+applyTheme(saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+
+/* redirect handling: only a same-folder .html page the role may see is honoured; anything else goes to the
+   role's dashboard, so ?redirect= can't send anyone to another site */
+const params = new URLSearchParams(location.search);
+function safeRedirect(role) {
+  const r = (params.get("redirect") || "").trim();
+  if (!/^[A-Za-z0-9_-]+\.html(\?[A-Za-z0-9_=&%.\-]*)?$/.test(r)) return null;
+  const page = r.split("?")[0];
+  if (OPEN_PAGES.includes(page)) return r;
+  return DASH[role] === page ? r : null;
+}
+
+/* Sends the signed-in person where they belong. Returns false if they can't go anywhere. */
+async function routeUser(user) {
+  let profile;
+  try { profile = await getUserProfile(user.$id); }
+  catch (e) {
+    if (e && e.code === 404) { location.replace("no_access.html"); return true; }   // auth account without a profile
+    throw e;
+  }
+  const role = String(profile.role || "");
+  if (role === "pending_admin") {
+    try { await account.deleteSession("current"); } catch (e) {}
+    return { blocked: "Your admin application is still waiting for approval. We'll let you in as soon as the owner approves it." };
+  }
+  if (!DASH[role]) { location.replace("no_access.html"); return true; }
+  location.replace(safeRedirect(role) || DASH[role]);
+  return true;
+}
+
+/* Views */
+const VIEWS = ["vLogin", "vForgot", "vReset"];
+function show(id, focusId) {
+  VIEWS.forEach(v => { $(v).hidden = v !== id; });
+  if (focusId) setTimeout(() => $(focusId).focus({ preventScroll: true }), 60);
+}
+const setBusy = (btn, busy, label) => {
+  btn.disabled = busy;
+  btn.innerHTML = busy ? '<span class="spin"></span><span>' + esc(label) + '</span>' : btn.dataset.label;
+};
+["loginBtn", "forgotGo", "resetGo"].forEach(id => { $(id).dataset.label = $(id).innerHTML; });
+$("loginBtn").dataset.label = '<span>Log in</span>' + ICON.arrow;
+$("loginBtn").innerHTML = $("loginBtn").dataset.label;
+
+const say = (el, html, ok) => { el.className = "formerr" + (ok ? " ok" : ""); el.innerHTML = html; };
+const flag = (input, bad) => input.classList.toggle("invalid", !!bad);
+const shake = el => el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-7px)" }, { transform: "translateX(6px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(0)" }], { duration: 320, easing: "ease-out" });
+const validEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+
+function friendlyError(e) {
+  const msg = String((e && e.message) || "");
+  const type = e && e.type;
+  if (!navigator.onLine || /network|failed to fetch|load failed/i.test(msg)) return "No internet connection. Please check your network and try again.";
+  if (e && (e.code === 401 || type === "user_invalid_credentials")) return "That email and password don't match. Please try again.";
+  if (e && (e.code === 429 || type === "general_rate_limit_exceeded")) return "Too many attempts. Please wait a few minutes and try again.";
+  if (type === "user_blocked") return "This account has been disabled. Contact support if you think this is a mistake.";
+  if (type === "user_not_found") return "We couldn't find an account with that email.";
+  return msg || "Something went wrong. Please try again.";
+}
+
+/* Log in */
+$("eye").innerHTML = ICON.eye;
+$("eye").addEventListener("click", () => {
+  const input = $("password"), reveal = input.type === "password";
+  input.type = reveal ? "text" : "password";
+  $("eye").innerHTML = reveal ? ICON.eyeOff : ICON.eye;
+  $("eye").setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+  input.focus({ preventScroll: true });
+});
+["email", "password"].forEach(id => $(id).addEventListener("input", () => { flag($(id), false); say($("loginErr"), ""); }));
+
+let loggingIn = false;
+$("loginForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (loggingIn) return;
+  const email = $("email").value.trim().toLowerCase(), pass = $("password").value;
+  if (!validEmail(email)) { flag($("email"), true); shake($("email").parentElement); say($("loginErr"), "Please enter a valid email address."); $("email").focus(); return; }
+  if (!pass) { flag($("password"), true); shake($("password").parentElement); say($("loginErr"), "Please enter your password."); $("password").focus(); return; }
+  if (!navigator.onLine) { say($("loginErr"), "You are offline."); return; }
+
+  loggingIn = true; setBusy($("loginBtn"), true, "Logging in…"); say($("loginErr"), "");
+  try {
+    try { await account.createEmailPasswordSession(email, pass); }
+    catch (e) {
+      // someone is already signed in on this browser: replace that session and try once more
+      if (e && e.type === "user_session_already_exists") {
+        try { await account.deleteSession("current"); } catch (x) {}
+        await account.createEmailPasswordSession(email, pass);
+      } else throw e;
+    }
+    const user = await account.get();
+    const res = await routeUser(user);
+    if (res && res.blocked) { say($("loginErr"), esc(res.blocked)); loggingIn = false; setBusy($("loginBtn"), false); }
+    // on success the page navigates away; leave the spinner showing
+  } catch (e) {
+    console.error(e);
+    flag($("password"), e && (e.code === 401 || e.type === "user_invalid_credentials"));
+    say($("loginErr"), esc(friendlyError(e)));
+    if (e && e.code === 401) shake($("password").parentElement);
+    loggingIn = false; setBusy($("loginBtn"), false);
+  }
+});
+
+/* Forgot password: ask for the link */
+$("forgotBtn").addEventListener("click", () => {
+  $("fEmail").value = $("email").value.trim();
+  say($("forgotErr"), ""); show("vForgot", "fEmail");
+  try { history.pushState({ v: "forgot" }, "", location.href); } catch (e) {}   // so the phone's back gesture/button returns to log in
+});
+[$("backBtn1"), $("backBtn2")].forEach(b => b.addEventListener("click", () => {
+  if (history.state && history.state.v === "forgot") { history.back(); return; }   // popstate below shows the log in view
+  history.replaceState(null, "", location.pathname + (params.get("redirect") ? "?redirect=" + encodeURIComponent(params.get("redirect")) : ""));
+  show("vLogin", "email");
+}));
+window.addEventListener("popstate", e => {
+  if (e.state && e.state.v === "forgot") show("vForgot", "fEmail");
+  else if (!$("vForgot").hidden) show("vLogin", "email");
+});
+$("fEmail").addEventListener("input", () => { flag($("fEmail"), false); say($("forgotErr"), ""); });
+
+let sending = false;
+$("forgotForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (sending) return;
+  const email = $("fEmail").value.trim().toLowerCase();
+  if (!validEmail(email)) { flag($("fEmail"), true); shake($("fEmail").parentElement); say($("forgotErr"), "Please enter a valid email address."); $("fEmail").focus(); return; }
+  if (!navigator.onLine) { say($("forgotErr"), "You are offline."); return; }
+  sending = true; setBusy($("forgotGo"), true, "Sending…"); say($("forgotErr"), "");
+  try {
+    // the emailed link comes back to this page with userId + secret, handled below
+    await account.createRecovery(email, location.origin + location.pathname);
+  } catch (e) {
+    // Never reveal whether an email has an account: only real problems are shown
+    if (!(e && (e.type === "user_not_found" || e.code === 404))) {
+      console.error(e);
+      say($("forgotErr"), esc(friendlyError(e)));
+      sending = false; setBusy($("forgotGo"), false); return;
+    }
+  }
+  say($("forgotErr"), "If an account exists for <b>" + esc(email) + "</b>, a reset link is on its way. Check your inbox and spam folder.", true);
+  sending = false; setBusy($("forgotGo"), false);
+  $("forgotGo").disabled = true; setTimeout(() => { $("forgotGo").disabled = false; }, 60000);   // gentle resend cooldown
+});
+
+/* Forgot password: choose a new one (arrived from the emailed link) */
+const rUser = params.get("userId"), rSecret = params.get("secret");
+$("nPass2").addEventListener("input", () => {
+  const m = $("resetMsg"), a = $("nPass").value, b = $("nPass2").value;
+  flag($("nPass2"), false); say($("resetErr"), "");
+  m.className = "vf" + (b && a === b ? " ok" : ""); m.textContent = b ? (a === b ? "Passwords match." : "Passwords don't match yet.") : "";
+});
+$("nPass").addEventListener("input", () => { flag($("nPass"), false); say($("resetErr"), ""); });
+
+let saving = false;
+$("resetForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (saving) return;
+  const a = $("nPass").value, b = $("nPass2").value;
+  let err = "";
+  if (a.length < 8) err = "Use at least 8 characters.";
+  else if (!/[A-Za-z]/.test(a) || !/\d/.test(a)) err = "Add letters and at least one number.";
+  else if (a !== b) err = "Passwords don't match.";
+  if (err) { flag(a !== b && a.length >= 8 ? $("nPass2") : $("nPass"), true); say($("resetErr"), esc(err)); return; }
+  if (!navigator.onLine) { say($("resetErr"), "You are offline."); return; }
+  saving = true; setBusy($("resetGo"), true, "Saving…"); say($("resetErr"), "");
+  try {
+    await account.updateRecovery(rUser, rSecret, a);
+    history.replaceState(null, "", location.pathname);
+    show("vLogin", "email");
+    say($("loginErr"), "Password updated. Log in with your new password.", true);
+  } catch (e) {
+    console.error(e);
+    const expired = e && (e.code === 401 || /invalid|expired/i.test(String(e.message)));
+    say($("resetErr"), expired ? 'This reset link is invalid or has expired. Please request a new one.' : esc(friendlyError(e)));
+  }
+  saving = false; setBusy($("resetGo"), false);
+});
+
+/* Start: already signed in? go straight in. Coming from a reset link? show that. */
+(async function init() {
+  if (rUser && rSecret) {                      // reset link: never auto-redirect, let them set the password
+    $("splash").hidden = true; show("vReset", "nPass"); return;
+  }
+  try {
+    const user = await account.get();
+    const res = await routeUser(user);
+    if (res && res.blocked) { $("splash").hidden = true; show("vLogin", "email"); say($("loginErr"), esc(res.blocked)); }
+    return;                                    // navigating away
+  } catch (e) { /* no session (401) or offline: fall through to the form */ }
+  $("splash").hidden = true;
+  show("vLogin", "email");
+  if (!navigator.onLine) say($("loginErr"), "You are offline. Connect to log in.");
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Platform space</title>
+<style>
+:root,:root[data-theme="dark"]{--bg:#161615;--card:#1b1b1a;--line:#2a2a28;--tile:#121211;--bar:#151514;--text:#e9e7df;--mute:#8b8981;--blue:#1c2530;--blue-text:#cfdcec;--pos:#7fb08f;--neg:#c98a84;--hero-line:rgba(207,220,236,.14);--delta-bg:rgba(127,176,143,.14);--spark:#7d9cc0;--warn:#d2a85c;--knob:#e9e7df;--track:#262624;--nav-bg:rgba(27,27,26,.88);color-scheme:dark}
+:root[data-theme="light"]{--bg:#efeeea;--card:#faf9f6;--line:#e4e2db;--tile:#ecebe5;--bar:#dedcd4;--text:#26251f;--mute:#85827a;--blue:#dbe6f2;--blue-text:#1d3450;--pos:#3f7a55;--neg:#a65a52;--hero-line:rgba(29,52,80,.14);--delta-bg:rgba(63,122,85,.14);--spark:#4f77a6;--warn:#9a6f1c;--knob:#fff;--track:#e0ddd4;--nav-bg:rgba(250,249,246,.88);color-scheme:light}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{transition:background .3s;background:var(--bg);color:var(--text);font:14px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px)}
+button,input,textarea{font:inherit;color:inherit}
+.card{max-width:400px;margin:0 auto;min-height:100vh;background:var(--card);padding:14px 15px calc(90px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:13px}
+.sync{display:flex;align-items:center;gap:8px;background:0;border:0;padding:0;color:var(--mute)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--pos)}
+.sync.busy i{background:var(--spark);animation:pulse 1s infinite}.sync.err i{background:var(--neg)}
+@keyframes pulse{50%{opacity:.3}}
+.avatar{margin-left:8px;width:36px;height:36px;border-radius:50%;background:var(--tile);display:grid;place-items:center;font:16px Georgia,serif}
+.title{margin-top:14px;font:400 21px/1.25 Georgia,"Times New Roman",serif;letter-spacing:-.01em}
+.theme{margin-left:auto;position:relative;width:54px;height:28px;border-radius:99px;border:0;background:var(--track);padding:0}
+.theme .knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--knob);display:grid;place-items:center;transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+:root[data-theme="light"] .theme .knob{transform:translateX(26px)}
+.theme svg{width:14px;height:14px;fill:none;stroke:#3a3934;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;grid-area:1/1;transition:opacity .2s}
+.theme .sun{opacity:0}:root[data-theme="light"] .theme .sun{opacity:1}:root[data-theme="light"] .theme .moon{opacity:0}
+:focus-visible{outline:2px solid var(--spark);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.view[hidden]{display:none}
+.hero{margin-top:12px;border-radius:15px;background:var(--blue);color:var(--blue-text);padding:16px 16px 14px}
+.hero-top{display:flex;align-items:center;justify-content:space-between;font-size:13px}.hero-top span{opacity:.7}
+.delta{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--delta-bg);color:var(--pos);opacity:1!important}.delta.down{color:var(--neg)}
+.hero-mid{display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px}
+.amount{font:400 34px/1 Georgia,serif;letter-spacing:-.02em}.amount small{font-size:19px;opacity:.5}
+.spark{width:84px;height:34px;flex:none;fill:none;stroke:var(--spark);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.hero-foot{display:flex;margin-top:14px;padding-top:12px;border-top:1px solid var(--hero-line)}
+.hero-foot div{flex:1}.hero-foot div+div{padding-left:16px;border-left:1px solid var(--hero-line)}
+.hero-foot small{display:block;font-size:12px;opacity:.55}.hero-foot b{display:block;margin-top:2px;font-weight:500}
+h2{font-size:13px;font-weight:400;color:var(--mute);margin:22px 0 8px}
+.list{border:1px solid var(--line);border-radius:16px;padding:0 12px}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;width:100%;background:0;border:0;text-align:left;cursor:default}
+.row+.row,.row+.kv,.kv+.row{border-top:1px solid var(--line)}
+.ico{width:36px;height:36px;border-radius:11px;background:var(--tile);flex:none;display:grid;place-items:center;color:var(--mute);font-size:14px}
+.ico svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.t{flex:1;min-width:0}.t b{display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t span,.r span{font-size:12px;color:var(--mute);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r{text-align:right;flex:none;max-width:42%}.r b{display:block;font-weight:500}.pos{color:var(--pos)}
+.empty{padding:18px 4px;color:var(--mute);font-size:13px;text-align:center}
+.chart{height:70px;margin-top:6px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 8px;border-bottom:1px solid var(--line)}
+.bar{width:22px;min-height:3px;border-radius:10px 10px 0 0;background:var(--bar)}.bar.on{background:var(--spark)}
+.days{display:flex;justify-content:space-between;padding:6px 3px 0;font-size:11px;color:var(--mute)}.days span{width:34px;text-align:center}
+.mini{display:flex;margin-top:14px;border:1px solid var(--line);border-radius:16px}.mini div{flex:1;padding:11px 12px}.mini div+div{border-left:1px solid var(--line)}
+.mini small{display:block;font-size:12px;color:var(--mute)}.mini b{display:block;margin-top:2px;font:400 18px Georgia,serif}
+.btn{border:1px solid var(--line);background:var(--tile);border-radius:99px;padding:6px 12px;font-size:12px;white-space:nowrap}
+.btn:disabled{opacity:.5}.btn.ghost{background:0;color:var(--mute)}.btn.pri{background:var(--blue);color:var(--blue-text);border-color:transparent;padding:11px 16px;font-size:14px;width:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:14px -15px 0;padding:0 15px 4px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:0;color:var(--mute);border-radius:99px;padding:6px 12px;font-size:13px;}
+.chip[aria-pressed="true"]{background:var(--blue);color:var(--blue-text);border-color:transparent}
+.field{width:100%;margin-top:10px;border:1px solid var(--line);background:var(--tile);border-radius:12px;padding:10px 12px;outline-offset:0}
+.note{font-size:12px;color:var(--mute);margin:8px 2px 0}
+.kv{padding:8px 0 10px 48px;font-size:12px;color:var(--mute);word-break:break-word}.kv b{font-weight:500;color:var(--text)}.kv div+div{margin-top:3px}
+.ustat{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:0 14px}
+.ustat-top{display:flex;align-items:baseline;justify-content:space-between;padding:12px 0}.ustat-top small{font-size:13px;color:var(--mute)}.ustat-top b{font:400 28px Georgia,serif;letter-spacing:-.01em}
+.ustat-row{display:flex;justify-content:space-between;align-items:center;height:38px;border-top:1px solid var(--line)}.ustat-row span{color:var(--mute)}.ustat-row b{font-weight:500}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.tile{aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;padding:10px;border:1px solid var(--line);background:var(--tile);border-radius:14px;transition:background .2s}
+.tile b{font:400 24px Georgia,serif;letter-spacing:-.01em}.tile span{font-size:12px;color:var(--mute);line-height:1.2;overflow-wrap:anywhere}
+.tile:disabled{opacity:.45;cursor:default}.tile[aria-pressed="true"]{background:var(--blue);color:var(--blue-text);border-color:transparent}.tile[aria-pressed="true"] span{color:inherit;opacity:.75}
+.slist{border:1px solid var(--line);border-radius:16px;padding:0 14px}
+.shead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0}.shead b{display:block;font:400 18px Georgia,serif}.shead span{font-size:12px;color:var(--mute)}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:54px;padding:8px 0;background:0;border:0;border-top:1px solid var(--line);text-align:left;}
+.slist .kv{padding:8px 0 10px;border-top:1px solid var(--line)}
+.rec{margin:2px 0 12px;border:1px solid var(--line);border-radius:16px;padding:0 14px;background:var(--card)}
+.rec-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0}.rec-top b{font:400 18px/1.25 Georgia,serif;letter-spacing:-.01em;min-width:0;overflow-wrap:anywhere}
+.pill{flex:none;font-size:12px;padding:3px 10px;border-radius:99px;background:var(--blue);color:var(--blue-text)}
+.rec-h{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);padding:14px 0 6px}
+.rec-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;min-height:38px;padding:9px 0;border-top:1px solid var(--line)}.rec-row span{color:var(--mute);flex:none}.rec-row b{font-weight:500;text-align:right;min-width:0;overflow-wrap:anywhere}
+.rec-long{padding:10px 0 12px;border-top:1px solid var(--line)}.rec-long span{display:block;color:var(--mute);margin-bottom:4px}.rec-long p{white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.mono{font:12px ui-monospace,Menlo,Consolas,monospace}
+.rec-btn{display:block;margin:10px auto 12px}.rec-x[hidden]{display:none}.rec-x{padding-bottom:6px}
+.t-good{--tone:var(--pos)}.t-bad{--tone:var(--neg)}.t-warn{--tone:var(--warn)}.t-info{--tone:var(--spark)}.t-none{--tone:var(--mute);--tc:var(--text)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tone,var(--mute));margin-right:8px;vertical-align:1px}
+.tile b{color:var(--tc,var(--tone,var(--text)))}.tile .dot{margin-right:6px;vertical-align:1px}
+.tile[aria-pressed="true"] b{color:inherit}.tile[aria-pressed="true"] .dot{background:currentColor}
+.st{font-style:normal;color:var(--tc,var(--tone,inherit))}
+.row[class*="t-"] .ico{background:color-mix(in srgb,var(--tone) 16%,transparent);color:var(--tc,var(--tone))}
+.pill[class*="t-"]{background:color-mix(in srgb,var(--tone) 16%,transparent);color:var(--tc,var(--tone))}
+.sub[hidden]{display:none}.chip{white-space:nowrap}
+#attTabs{margin:14px 0 0;gap:4px;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}#attTabs::-webkit-scrollbar{display:none}
+#attTabs button{flex:0 0 auto;display:flex;flex-direction:row;align-items:center;gap:7px;padding:10px 14px;font-size:13px;line-height:1.2;white-space:nowrap;scroll-snap-align:center}
+#attTabs .cnt{font:400 12px Georgia,serif;color:var(--mute)}#attTabs .cnt.on{color:var(--warn)}
+.acard{margin:10px 0 0}.acts{display:flex;gap:8px;align-items:center;padding:10px 0 12px;border-top:1px solid var(--line)}
+.sk{display:block;background:linear-gradient(90deg,var(--tile) 25%,var(--line) 50%,var(--tile) 75%);background-size:200% 100%;animation:skm 1.3s linear infinite;border-radius:8px}
+@keyframes skm{to{background-position:-200% 0}}
+.sk-row{display:flex;align-items:center;gap:12px;min-height:56px}.sk-row+.sk-row{border-top:1px solid var(--line)}.sk-col{flex:1;display:grid;gap:7px}
+.sk-bars{display:flex;align-items:flex-end;justify-content:space-between;height:70px;margin-top:6px;padding:0 8px;border-bottom:1px solid var(--line)}
+.sk-h{margin:22px 0 8px}
+#ovSk .mini small,#ovSk .mini b{display:block}#ovSk .h2row{margin:22px 0 8px}#ovSk .days{justify-content:space-between}
+.cash-row .t span .sk,.cash-res p .sk{vertical-align:-1px}
+.ring{display:grid;place-items:center;padding:34px 0}.ring svg{width:34px;height:34px;animation:ringrot 2s linear infinite}
+.ring circle{fill:none;stroke:var(--spark);stroke-width:3;stroke-linecap:round;animation:ringdash 1.5s ease-in-out infinite}
+@keyframes ringrot{to{transform:rotate(360deg)}}
+@keyframes ringdash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:89,200;stroke-dashoffset:-35px}100%{stroke-dasharray:89,200;stroke-dashoffset:-124px}}
+.view.first>*:not(.pgl),.view.dbwait>*:not(.pgl):not(.chips){display:none!important}.pgl{display:none;min-height:calc(100vh - 330px);place-items:center}.view.first>.pgl,.view.dbwait>.pgl{display:grid}.pgl .ring{padding:0}
+.ring.sm{padding:3px 0;place-items:center start}.ring.sm svg{width:28px;height:28px}.amount .ring circle{stroke:var(--blue-text)}
+.hero .sk{background:linear-gradient(90deg,color-mix(in srgb,var(--blue-text) 10%,transparent) 25%,color-mix(in srgb,var(--blue-text) 24%,transparent) 50%,color-mix(in srgb,var(--blue-text) 10%,transparent) 75%);background-size:200% 100%}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:var(--spark);color:var(--bg);font-size:10px;font-weight:600;display:grid;place-items:center}
+.badge[hidden]{display:none}.unread{background:var(--spark);color:var(--bg);border-radius:99px;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px;margin-top:4px;margin-left:auto}
+.thread-head{display:flex;align-items:center;gap:10px;margin-top:14px}.thread-head .t b{font:400 17px Georgia,serif}
+.msgs{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding-bottom:8px}
+.msg{max-width:82%;padding:8px 11px;border-radius:14px;background:var(--tile);align-self:flex-start;word-break:break-word;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:var(--blue);color:var(--blue-text)}.msg small{display:block;font-size:10.5px;opacity:.55;margin-top:2px}
+.msg img{display:block;max-width:100%;border-radius:10px;margin-bottom:4px}
+.composer{position:sticky;bottom:calc(68px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:flex-end;background:var(--card);padding:8px 0;border-top:1px solid var(--line)}
+.composer textarea{flex:1;resize:none;max-height:110px;border:1px solid var(--line);background:var(--tile);border-radius:14px;padding:9px 12px}
+.composer .btn{padding:10px 14px;font-size:13px}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;margin-top:6px}
+.seg button{flex:1;border:0;background:0;color:var(--mute);border-radius:9px;padding:8px 0;}.seg button[aria-pressed="true"]{background:var(--blue);color:var(--blue-text)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);opacity:0;pointer-events:none;background:var(--text);color:var(--bg);padding:9px 14px;border-radius:12px;font-size:13px;max-width:340px;transition:.25s;z-index:20}.toast.show{opacity:1;transform:translate(-50%,0)}
+.nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:400px;z-index:10;display:flex;padding:6px 2px calc(8px + env(safe-area-inset-bottom,0px));background:var(--nav-bg);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.nav button{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 4px;background:0;border:0;color:var(--mute);font-size:10.5px;white-space:nowrap;transition:color .2s}
+.nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav button::before{content:"";position:absolute;top:0;left:50%;width:0;height:2px;border-radius:2px;background:var(--spark);transform:translateX(-50%);transition:width .25s}
+.nav button[aria-current="true"]{color:var(--text)}.nav button[aria-current="true"]::before{width:20px}
+
+.rec-act{display:flex;align-items:center;gap:8px;flex:none}
+.pen{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--tile);color:var(--mute);display:grid;place-items:center;padding:0;transition:background .2s,color .2s,transform .15s}
+.pen svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.pen:active{transform:scale(.92)}.pen:hover{background:var(--blue);color:var(--blue-text);border-color:transparent}
+/* reviews panel: neat review rows */
+.rv{align-items:flex-start;gap:12px;padding:14px 0}
+.rv .ico{width:40px;height:40px;border-radius:12px;font-weight:700}
+.rv .t b{font-size:15px;line-height:1.3}
+.rv .rv-meta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin-top:3px;font-size:12px;line-height:1.4;color:var(--mute);white-space:normal;overflow:visible}
+.rv .rv-stars{color:#e8b339;letter-spacing:1.5px;font-size:13px}
+.rv .rv-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;white-space:normal;overflow:visible}
+.rv .rv-tag{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--tile);border:1px solid var(--line);font-size:12px;line-height:1.4;color:var(--ink);white-space:normal}
+.rv .rv-note{margin:8px 0 0;font-size:13.5px;line-height:1.5;color:var(--ink);overflow-wrap:anywhere}
+.rv .r{flex:none;align-self:flex-start}
+.rv .r>div{display:flex;gap:8px}
+.sheet-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .28s ease,visibility 0s linear .38s}
+.sheet-bg.on{opacity:1;visibility:visible;transition:opacity .28s ease}
+.sheet{position:absolute;left:50%;bottom:0;width:100%;max-width:400px;max-height:90vh;max-height:90dvh;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;padding:8px 18px calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,100%);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+.sheet-bg.on .sheet{transform:translate(-50%,0)}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:4px auto 14px}
+.sh-head{display:flex;align-items:center;gap:12px}.sh-head .t b{font:400 19px/1.25 Georgia,serif;letter-spacing:-.01em}
+.sh-x{flex:none;width:32px;height:32px;border-radius:50%;border:0;background:var(--tile);color:var(--mute);display:grid;place-items:center;padding:0}
+.sh-x svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.tpls{display:flex;gap:6px;overflow-x:auto;margin:14px -18px 0;padding:0 18px 2px;scrollbar-width:none}.tpls::-webkit-scrollbar{display:none}
+.tpl{flex:none;max-width:78%;border:1px solid var(--line);background:0;color:var(--mute);border-radius:14px;padding:7px 11px;font-size:12px;line-height:1.3;text-align:left;white-space:normal;transition:background .2s,color .2s}
+.tpl:active,.tpl:hover{background:var(--tile);color:var(--text)}
+.sheet .field{resize:none;min-height:116px;line-height:1.45;transition:border-color .2s,box-shadow .2s}
+.sheet .field:focus{border-color:var(--spark);box-shadow:0 0 0 3px color-mix(in srgb,var(--spark) 18%,transparent);outline:0}
+.sh-row{display:flex;align-items:center;justify-content:space-between;margin:10px 2px 0;gap:10px}.sh-row .note{margin:0}
+.sw{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--mute);cursor:pointer}.sw input{position:absolute;opacity:0;pointer-events:none}
+.sw i{position:relative;width:36px;height:21px;border-radius:99px;background:var(--track,var(--line));transition:background .25s}
+.sw i::after{content:"";position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;border-radius:50%;background:var(--knob,#fff);transition:transform .28s cubic-bezier(.3,1.4,.5,1)}
+.sw input:checked+i{background:var(--warn)}.sw input:checked+i::after{transform:translateX(15px)}.sw input:checked~span{color:var(--text)}
+.sw input:focus-visible+i{outline:2px solid var(--spark);outline-offset:2px}
+.sheet .err{color:var(--neg);margin:10px 2px 0}.sheet .btn.pri{margin-top:14px}
+.sh-done{text-align:center;padding:26px 0 6px}.sh-done b{display:block;font:400 19px Georgia,serif;margin-top:14px}.sh-done p{font-size:13px;color:var(--mute);margin:4px 0 0}
+.sh-done .acts2{display:flex;gap:8px;justify-content:center;margin-top:20px}.sh-done .btn.pri{width:auto;margin:0}
+.okring{width:54px;height:54px;margin:0 auto;border-radius:50%;background:color-mix(in srgb,var(--pos) 16%,transparent);display:grid;place-items:center;animation:pop .45s cubic-bezier(.3,1.5,.5,1)}
+.okring svg{width:26px;height:26px;fill:none;stroke:var(--pos);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30;animation:tick .4s .15s ease forwards}
+@keyframes pop{from{transform:scale(.6);opacity:0}}@keyframes tick{to{stroke-dashoffset:0}}
+
+.avatar{border:0;padding:0;cursor:pointer;color:var(--text);transition:transform .2s}.avatar:active{transform:scale(.9)}
+.h2row{display:flex;align-items:center;justify-content:space-between;margin:22px 0 8px}.h2row h2{margin:0}
+.row.tap{cursor:pointer;transition:opacity .15s}.row.tap:active{opacity:.6}
+.chev{width:14px;height:14px;fill:none;stroke:var(--mute);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn.danger{background:color-mix(in srgb,var(--neg) 16%,var(--tile));color:var(--neg);border-color:transparent}
+.toast{z-index:200}
+
+/* slide panel: full screen, enters from the right (same idea as .cr-panel on the client page) */
+.pn{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;max-width:400px;margin:0 auto;background:var(--card);border-left:1px solid var(--line);border-right:1px solid var(--line);transform:translateX(100%);visibility:hidden;transition:transform .32s cubic-bezier(.22,.9,.3,1),visibility 0s linear .32s;will-change:transform}
+.pn.open{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.22,.9,.3,1),visibility 0s}
+.pn-head{flex:none;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 15px 12px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--card) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.pn-back{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--tile);color:var(--text);display:grid;place-items:center;padding:0;cursor:pointer;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.pn-back:active{transform:scale(.86)}
+.pn-back svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.pn-t{flex:1;min-width:0}.pn-t b{display:block;font:400 19px/1.25 Georgia,serif;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-t span{display:block;font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pn-t span:empty{display:none}
+.pn-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 15px calc(28px + env(safe-area-inset-bottom,0px))}
+.pn-body.out{animation:pnOut .15s ease forwards}
+.pn-body.in-f{animation:pnInF .24s cubic-bezier(.3,1.2,.5,1)}.pn-body.in-b{animation:pnInB .24s cubic-bezier(.3,1.2,.5,1)}
+@keyframes pnOut{to{opacity:0;transform:translateX(-14px)}}
+@keyframes pnInF{from{opacity:0;transform:translateX(14px)}}
+@keyframes pnInB{from{opacity:0;transform:translateX(-14px)}}
+
+/* profile panel */
+.pf{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 0 2px}
+.pf-av{width:76px;height:76px;border-radius:50%;background:var(--blue);color:var(--blue-text);display:grid;place-items:center;font:400 32px Georgia,serif}
+.pf .nm{margin-top:12px;font:400 22px/1.25 Georgia,serif;letter-spacing:-.01em;overflow-wrap:anywhere}
+.pf .em{margin-top:2px;font-size:13px;color:var(--mute);overflow-wrap:anywhere}.pf .pill{margin-top:10px}
+.pn-body .rec{margin:0}.pn-body .rec>.rec-row:first-child{border-top:0}.so{display:block;width:100%;margin-top:22px;padding:12px 16px;font-size:14px}
+
+/* owner avatar (head, neck, shirt, tie): shaded with inset shadows, themed */
+.avatar,.pf-av{position:relative;overflow:hidden;background:var(--blue)}
+.avatar::after,.pf-av::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:inset 0 0 0 1px var(--hero-line),inset 0 -8px 16px rgba(0,0,0,.16),inset 0 6px 12px rgba(255,255,255,.07)}
+.av-fig{display:block;width:100%;height:100%}
+.av-sk{fill:var(--knob)}
+.av-ed{stroke:color-mix(in srgb,var(--blue-text) 42%,transparent);stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.av-ln{fill:none;stroke:color-mix(in srgb,var(--blue-text) 42%,transparent);stroke-width:1.25;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.av-tie{fill:var(--spark)}
+.av-clip{fill:var(--mute)}
+.av-st{fill:none;stroke:var(--knob);stroke-opacity:.55;stroke-width:5;stroke-linecap:round}
+
+/* modal overlay: centred card, fades and pops in (not a bottom sheet) */
+.md-bg{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
+.md-bg.on{opacity:1;visibility:visible;transition:opacity .22s ease}
+.md{width:100%;max-width:340px;max-height:calc(100dvh - 40px);overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 18px 16px;box-shadow:0 24px 60px rgba(0,0,0,.38);transform:translateY(10px) scale(.94);opacity:0;transition:transform .3s cubic-bezier(.3,1.4,.5,1),opacity .2s ease;outline:0}
+.md-bg.on .md{transform:none;opacity:1}
+.md-ico{width:48px;height:48px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--tone,var(--spark)) 16%,transparent);color:var(--tone,var(--spark))}
+.md-ico svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.md-title{font:400 20px/1.25 Georgia,serif;letter-spacing:-.01em;text-align:center;overflow-wrap:anywhere}
+.md-text{margin-top:6px;color:var(--mute);text-align:center;line-height:1.45;white-space:pre-line}
+.md-quote{margin-top:14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--tile);max-height:120px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:13px}
+.md-rows{margin-top:14px;border:1px solid var(--line);border-radius:14px;background:var(--tile);padding:2px 12px}
+.md-rows .rec-row:first-child{border-top:0}
+.md-acts{display:flex;gap:8px;margin-top:18px}.md-acts.col{flex-direction:column-reverse}
+.md-acts .btn{flex:1;width:auto;padding:12px 10px;font-size:14px}
+
+.neg{color:var(--neg)}
+/* cash position: verified deposits minus earnings withdrawn */
+.cash{margin-top:0;border:1px solid var(--line);border-radius:16px;padding:0 14px;overflow:hidden}
+.cash-row{display:flex;align-items:center;gap:12px;min-height:58px}
+.cash-row .ico{width:34px;height:34px;border-radius:50%}
+.cash-row .t b{font-weight:500}.cash-row .r b{font:400 17px Georgia,serif;letter-spacing:-.01em;display:inline-block;min-width:0}
+.cash-row+.cash-row{border-top:1px solid var(--line)}
+.cash-in .ico{background:color-mix(in srgb,var(--pos) 16%,transparent);color:var(--pos)}.cash-out .ico{background:color-mix(in srgb,var(--neg) 16%,transparent);color:var(--neg)}
+.cash-res{margin:0 -14px;padding:14px 14px 15px;background:var(--blue);color:var(--blue-text)}
+.cash-res-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.cash-res-top small{font-size:13px;opacity:.7}
+.cash-res-top b{font:400 30px/1.1 Georgia,serif;letter-spacing:-.02em;text-align:right;overflow-wrap:anywhere}
+.cash-res-top b.neg{color:var(--neg)}
+.cash-bar{height:6px;border-radius:99px;background:color-mix(in srgb,var(--blue-text) 16%,transparent);margin-top:12px;overflow:hidden}
+.cash-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--spark);transition:width .6s cubic-bezier(.22,.9,.3,1)}
+.cash-res p{margin:7px 0 0;font-size:12px;opacity:.65}
+.cash .sk{background:linear-gradient(90deg,var(--tile) 25%,var(--line) 50%,var(--tile) 75%);background-size:200% 100%}
+.cash-res .sk{background:linear-gradient(90deg,color-mix(in srgb,var(--blue-text) 10%,transparent) 25%,color-mix(in srgb,var(--blue-text) 24%,transparent) 50%,color-mix(in srgb,var(--blue-text) 10%,transparent) 75%);background-size:200% 100%}
+
+/* support chat: presence, typing, media */
+.t span.pres{display:flex;align-items:center;gap:6px}.pres i{width:8px;height:8px;border-radius:50%;background:var(--mute);flex:none;transition:background .3s,box-shadow .3s}
+.pres.on i{background:var(--pos);box-shadow:0 0 0 3px color-mix(in srgb,var(--pos) 22%,transparent)}.pres.on em{color:var(--pos)}.pres em{font-style:normal}
+.ico.on{position:relative;overflow:visible}.ico.on::after{content:"";position:absolute;right:-2px;bottom:-2px;width:10px;height:10px;border-radius:50%;background:var(--pos);border:2px solid var(--card)}
+.typ{display:flex;align-items:center;gap:4px;width:max-content;margin:2px 0 6px;padding:10px 13px;border-radius:14px;background:var(--tile)}.typ[hidden]{display:none}
+.typ i{width:6px;height:6px;border-radius:50%;background:var(--mute);animation:typb 1.1s infinite}.typ i:nth-child(2){animation-delay:.15s}.typ i:nth-child(3){animation-delay:.3s}
+@keyframes typb{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+.msg img{cursor:zoom-in}
+.subln{display:flex;align-items:center;gap:12px;margin-top:3px;min-width:0}
+.cl-sec{margin-top:36px}.cl-sec .h2row{margin:0 0 12px}.cl-sec .mini{margin-top:0}.cl-sec .list{margin-top:14px}.cl-sec .note{margin:14px 2px 0;line-height:1.45}
+.mv{position:fixed;inset:0;z-index:150;overflow:hidden;background:rgba(8,8,8,.96);opacity:0;visibility:hidden;transition:opacity .22s,visibility 0s linear .22s}
+.mv.on{opacity:1;visibility:visible;transition:opacity .22s}
+.mv-top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;color:#e9e7df;background:linear-gradient(rgba(8,8,8,.7),rgba(8,8,8,0));pointer-events:none}.mv-top>*{pointer-events:auto}
+@supports (height:100dvh){.mv{height:100dvh;bottom:auto}}
+.mv-b{min-width:38px;height:38px;border-radius:99px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#e9e7df;display:grid;place-items:center;padding:0 12px;font-size:13px}
+.mv-b svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}.mv-b:active{background:rgba(255,255,255,.18)}
+.mv-z{flex:1;text-align:left;padding-left:8px;font-size:13px;opacity:.7}.mv-b[hidden]{display:none}
+.mv-stage{position:absolute;inset:0;overflow:hidden;touch-action:none;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);place-items:center;cursor:grab}.mv-stage.drag{cursor:grabbing}
+.mv-stage img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;transform-origin:center;will-change:transform;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.mv.on .mv-hint{animation:hintf 3.4s ease forwards}@keyframes hintf{0%,65%{opacity:.5}100%{opacity:0}}
+.mv-hint{position:absolute;z-index:2;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;font-size:12px;color:#e9e7df;opacity:.5;pointer-events:none}
+.wto{display:grid;gap:10px;margin-top:18px}.wto[hidden]{display:none}
+.wchip{display:grid;gap:2px;text-align:left;width:100%;border:1px solid var(--line);background:0;border-radius:14px;padding:13px 15px;transition:background .2s}
+.wchip b{display:block;font-weight:500}.wchip .wl span{display:block;font-size:12.5px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wchip em{font-style:normal;font-size:12px;line-height:1.35;color:var(--tone,var(--mute));margin-top:6px}
+.wchip[aria-pressed="true"]{background:var(--blue);color:var(--blue-text);border-color:transparent}.wchip[aria-pressed="true"] .wl span,.wchip[aria-pressed="true"] em{color:inherit;opacity:.8}
+#wHow{margin-top:12px}
+.wchip:disabled{opacity:.45}.pen.done{color:var(--pos);border-color:color-mix(in srgb,var(--pos) 40%,var(--line))}
+/* offline + retry */
+.off{position:fixed;top:env(safe-area-inset-top,0px);left:50%;transform:translateX(-50%);width:100%;max-width:400px;z-index:80;display:flex;align-items:center;gap:12px;padding:11px 16px;background:var(--warn);color:var(--bg);font-size:13px}
+.off[hidden]{display:none}.off span{flex:1}.off .btn{background:rgba(0,0,0,.18);border:0;color:inherit;padding:5px 12px}
+.net{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:var(--bg);text-align:center}.net[hidden]{display:none}
+.net-in{max-width:300px}.net-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.net-ico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.net h3{font:400 21px Georgia,serif;margin:0 0 6px}.net p{color:var(--mute);line-height:1.45}.net .btn.pri{margin-top:18px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="avIn" filterUnits="userSpaceOnUse" x="-20" y="-20" width="420" height="480">
+      <feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+      <feGaussianBlur in="inv" stdDeviation="16" result="b1"/><feOffset in="b1" dx="-16" dy="-20" result="o1"/>
+      <feFlood flood-color="#3b4256" flood-opacity=".5"/><feComposite in2="o1" operator="in" result="s1"/><feComposite in="s1" in2="SourceAlpha" operator="in" result="sh"/>
+      <feGaussianBlur in="inv" stdDeviation="10" result="b2"/><feOffset in="b2" dx="10" dy="12" result="o2"/>
+      <feFlood flood-color="#ffffff" flood-opacity=".9"/><feComposite in2="o2" operator="in" result="s2"/><feComposite in="s2" in2="SourceAlpha" operator="in" result="hl"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="hl"/><feMergeNode in="sh"/></feMerge>
+    </filter>
+    <filter id="avInS" filterUnits="userSpaceOnUse" x="-20" y="-20" width="420" height="480">
+      <feComponentTransfer in="SourceAlpha" result="inv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+      <feGaussianBlur in="inv" stdDeviation="5" result="b1"/><feOffset in="b1" dx="-5" dy="-7" result="o1"/>
+      <feFlood flood-color="#232a3c" flood-opacity=".5"/><feComposite in2="o1" operator="in" result="s1"/><feComposite in="s1" in2="SourceAlpha" operator="in" result="sh"/>
+      <feGaussianBlur in="inv" stdDeviation="4" result="b2"/><feOffset in="b2" dx="4" dy="5" result="o2"/>
+      <feFlood flood-color="#ffffff" flood-opacity=".4"/><feComposite in2="o2" operator="in" result="s2"/><feComposite in="s2" in2="SourceAlpha" operator="in" result="hl"/>
+      <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="hl"/><feMergeNode in="sh"/></feMerge>
+    </filter>
+    <symbol id="avFig" viewBox="0 0 380 420">
+      <path class="av-sk av-ed" filter="url(#avIn)" d="M 4 410 C 8 330 40 285 110 262 C 140 253 165 249 190 248 C 215 249 240 253 270 262 C 340 285 372 330 376 410 Z"/>
+      <path class="av-sk av-ed" filter="url(#avIn)" d="M 150 226 L 150 262 Q 190 290 230 262 L 230 226"/>
+      <path class="av-ln" d="M 174 296 L 172 412 M 206 296 L 208 412"/>
+      <path class="av-tie av-ed" filter="url(#avInS)" d="M 182 312 L 198 312 L 214 390 L 190 404 L 166 390 Z"/>
+      <path class="av-tie av-ed" filter="url(#avInS)" d="M 177 288 L 203 288 L 198 312 L 182 312 Z"/>
+      <path class="av-st" d="M 178 332 L 202 322 M 174 374 L 206 364 M 171 390 L 207 380"/>
+      <rect class="av-clip av-ed" filter="url(#avInS)" x="170" y="342" width="40" height="9" rx="3"/>
+      <path class="av-sk av-ed" filter="url(#avInS)" d="M 134 224 L 174 296 L 150 326 L 112 262 Z"/>
+      <path class="av-sk av-ed" filter="url(#avInS)" d="M 246 224 L 206 296 L 230 326 L 268 262 Z"/>
+      <circle class="av-sk av-ed" filter="url(#avIn)" cx="190" cy="130" r="105"/>
+    </symbol>
+  </defs>
+</svg>
+<main class="card">
+  <div class="top">
+    <button class="sync busy" id="sync" type="button" aria-label="Refresh"><i></i><span id="syncTxt">Syncing</span></button>
+    <button class="theme" id="theme" type="button" aria-label="Switch theme"><span class="knob">
+      <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span></button>
+    <button class="avatar" id="avatar" type="button" aria-label="Open profile"><svg class="av-fig" viewBox="0 10 380 380" aria-hidden="true"><use href="#avFig"/></svg></button>
+  </div>
+  <h1 class="title" id="title">Platform space</h1>
+
+  <section class="view" id="v-overview">
+    <section class="hero">
+      <div class="hero-top"><span>Platform revenue</span><span class="delta" id="delta">—</span></div>
+      <div class="hero-mid"><div class="amount" id="total"><div class="ring sm" role="status" aria-label="Loading"><svg viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"/></svg></div></div><svg class="spark" viewBox="0 0 84 34" aria-hidden="true"><path id="sparkPath" d="M2 30 L82 30"/></svg></div>
+      <div class="hero-foot"><div><small>Project fees</small><b id="fProj"><span class="sk" style="width:64px;height:14px;display:inline-block;vertical-align:-2px"></span></b></div><div><small>Withdrawal fees</small><b id="fWd"><span class="sk" style="width:64px;height:14px;display:inline-block;vertical-align:-2px"></span></b></div></div>
+    </section>
+    <div id="ovSk" aria-hidden="true"><div class="mini"><div><span class="sk" style="width:70%;height:10px"></span><span class="sk" style="width:55%;height:16px;margin-top:9px"></span></div><div><span class="sk" style="width:60%;height:10px"></span><span class="sk" style="width:40%;height:16px;margin-top:9px"></span></div></div><div class="mini"><div><span class="sk" style="width:70%;height:10px"></span><span class="sk" style="width:55%;height:16px;margin-top:9px"></span></div><div><span class="sk" style="width:60%;height:10px"></span><span class="sk" style="width:40%;height:16px;margin-top:9px"></span></div></div><div class="h2row"><span class="sk" style="width:104px;height:12px"></span><span class="sk" style="width:52px;height:24px;border-radius:99px"></span></div><div class="list"><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div></div><div class="sk sk-h" style="width:130px;height:12px"></div><div class="sk-bars"><span class="sk" style="width:18px;height:26px;border-radius:5px 5px 0 0"></span><span class="sk" style="width:18px;height:40px;border-radius:5px 5px 0 0"></span><span class="sk" style="width:18px;height:18px;border-radius:5px 5px 0 0"></span><span class="sk" style="width:18px;height:52px;border-radius:5px 5px 0 0"></span><span class="sk" style="width:18px;height:34px;border-radius:5px 5px 0 0"></span><span class="sk" style="width:18px;height:60px;border-radius:5px 5px 0 0"></span><span class="sk" style="width:18px;height:44px;border-radius:5px 5px 0 0"></span></div><div class="days" style="padding-top:8px"><span class="sk" style="width:26px;height:9px;margin:0 4px"></span><span class="sk" style="width:26px;height:9px;margin:0 4px"></span><span class="sk" style="width:26px;height:9px;margin:0 4px"></span><span class="sk" style="width:26px;height:9px;margin:0 4px"></span><span class="sk" style="width:26px;height:9px;margin:0 4px"></span><span class="sk" style="width:26px;height:9px;margin:0 4px"></span><span class="sk" style="width:26px;height:9px;margin:0 4px"></span></div><div class="mini"><div><span class="sk" style="width:70%;height:10px"></span><span class="sk" style="width:55%;height:16px;margin-top:9px"></span></div><div><span class="sk" style="width:60%;height:10px"></span><span class="sk" style="width:40%;height:16px;margin-top:9px"></span></div></div></div>
+    <div id="ovReal" hidden>
+    <div class="mini"><div><small>Verified deposits</small><b id="dTotal"><span class="sk" style="width:64px;height:16px;border-radius:6px"></span></b></div><div><small>Verified count</small><b id="dCount"><span class="sk" style="width:34px;height:16px;border-radius:6px"></span></b></div></div>
+    <div class="mini"><div><small>Clients' project worths</small><b id="pWorth"><span class="sk" style="width:64px;height:16px;border-radius:6px"></span></b></div><div><small>Total projects</small><b id="pCount"><span class="sk" style="width:34px;height:16px;border-radius:6px"></span></b></div></div>
+    <div class="h2row"><h2>Recent activity</h2><button class="btn ghost" id="actAll" type="button">See all</button></div><div class="list" id="actList"></div>
+    <h2>Revenue, last 7 days</h2><div class="chart" id="chart"></div><div class="days" id="days"></div>
+    <div class="mini"><div><small>Clients</small><b id="nClients">—</b></div><div><small>Earners</small><b id="nEarners">—</b></div></div>
+  </div>
+      <div id="cashSk" aria-hidden="true"><div class="sk sk-h" style="width:118px;height:12px"></div>
+    <div class="cash"><div class="cash-row"><span class="sk" style="width:34px;height:34px;border-radius:50%;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:52%"></span><span class="sk" style="height:10px;width:38%"></span></div><span class="sk" style="width:74px;height:14px"></span></div><div class="cash-row"><span class="sk" style="width:34px;height:34px;border-radius:50%;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:52%"></span><span class="sk" style="height:10px;width:38%"></span></div><span class="sk" style="width:74px;height:14px"></span></div><div class="cash-row"><span class="sk" style="width:34px;height:34px;border-radius:50%;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:52%"></span><span class="sk" style="height:10px;width:38%"></span></div><span class="sk" style="width:74px;height:14px"></span></div><div class="cash-row"><span class="sk" style="width:34px;height:34px;border-radius:50%;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:52%"></span><span class="sk" style="height:10px;width:38%"></span></div><span class="sk" style="width:74px;height:14px"></span></div><div class="cash-res"><div class="cash-res-top"><span class="sk" style="width:96px;height:11px"></span><span class="sk" style="width:138px;height:28px"></span></div><span class="sk" style="height:6px;width:100%;border-radius:99px;margin-top:14px"></span><span class="sk" style="height:10px;width:62%;margin-top:11px"></span></div></div></div>
+      <div id="cashReal" hidden>
+      <h2>Money Handling</h2>
+    <div class="cash" id="cash">
+      <div class="cash-row cash-in"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div><div class="t"><b>Verified deposits</b><span id="cInN"><span class="sk" style="width:112px;height:10px;display:inline-block;"></span></span></div><div class="r"><b class="pos" id="cIn"><span class="sk" style="width:80px;height:14px;display:inline-block;vertical-align:-2px"></span></b></div></div>
+      <div class="cash-row cash-out"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div><div class="t"><b>Earnings withdrawn</b><span id="cOutN"><span class="sk" style="width:112px;height:10px;display:inline-block;"></span></span></div><div class="r"><b class="neg" id="cOut"><span class="sk" style="width:80px;height:14px;display:inline-block;vertical-align:-2px"></span></b></div></div>
+      <div class="cash-row cash-out"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div><div class="t"><b>Your fees</b><span>Project and withdrawal fees earned</span></div><div class="r"><b class="neg" id="cFee"><span class="sk" style="width:80px;height:14px;display:inline-block;vertical-align:-2px"></span></b></div></div>
+      <div class="cash-row cash-out"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div><div class="t"><b>Clients' unused balance</b><span id="cCliN"><span class="sk" style="width:112px;height:10px;display:inline-block;"></span></span></div><div class="r"><b class="neg" id="cCli"><span class="sk" style="width:80px;height:14px;display:inline-block;vertical-align:-2px"></span></b></div></div>
+      <div class="cash-res"><div class="cash-res-top"><small>Owed to earners</small><b id="cRes"><span class="sk" style="width:120px;height:28px;display:inline-block;"></span></b></div><div class="cash-bar"><i id="cBar"></i></div><p id="cPct"><span class="sk" style="width:220px;height:10px;display:inline-block;"></span></p></div>
+    </div>
+      </div>
+  </section>
+
+  <section class="view dbwait" id="v-database" hidden>
+    <div class="chips" id="chips" role="group" aria-label="Collections"></div>
+        <input class="field" id="dbSearch" type="search" placeholder="Search loaded records" aria-label="Search loaded records">
+    <div class="pgl"><div class="ring" role="status" aria-label="Loading"><svg viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"/></svg></div></div>
+    <div id="dbStats"></div>
+    <p class="note" id="dbNote"></p>
+    <div class="list" id="dbList" style="margin-top:10px"></div>
+    <button class="btn ghost" id="dbMore" type="button" style="display:none;margin:12px auto 0">Load more</button>
+  </section>
+
+  <section class="view first" id="v-attention" hidden>
+    <div class="pgl"><div class="ring" role="status" aria-label="Loading"><svg viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"/></svg></div></div>
+    <div class="seg" id="attTabs" role="group" aria-label="Attention sections">
+      <button type="button" data-s="admin" aria-pressed="true"><span>Admin review</span><b class="cnt" id="c-admin">0</b></button>
+      <button type="button" data-s="wd" aria-pressed="false"><span>Withdraw request</span><b class="cnt" id="c-wd">0</b></button>
+      <button type="button" data-s="ban" aria-pressed="false"><span>Account ban review</span><b class="cnt" id="c-ban">0</b></button>
+      <button type="button" data-s="flag" aria-pressed="false"><span>Flag tasks review</span><b class="cnt" id="c-flag">0</b></button>
+    </div>
+    <div class="sub" id="s-admin"><h2>Admin applications</h2><div class="list" id="aApps"></div><h2>Admins</h2><div class="list" id="aAdmins"></div></div>
+    <div class="sub" id="s-wd" hidden><h2>Pending withdrawals</h2><div id="aWd"></div></div>
+    <div class="sub" id="s-ban" hidden><h2>Banned accounts</h2><div id="aBan"></div><p class="note">Restore lifts the ban and sets the flag score to 66 at most. Review requests come from the earner's disabled-account screen.</p></div>
+    <div class="sub" id="s-flag" hidden><h2>Waiting for an admin decision</h2><div id="aFlag"></div><p class="note">Read only. Confirming or dismissing a flag stays with the admin who owns the task.</p></div>
+  </section>
+
+  <section class="view" id="v-support" hidden>
+    <div id="inbox"><h2>Conversations</h2><div class="list" id="inboxList"><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div></div></div>
+    <div id="thread" hidden>
+      <div class="thread-head"><button class="btn ghost" id="back" type="button">Back</button><div class="t"><b id="thName"></b><div class="subln"><span id="thRole"></span><span class="pres" id="thPres"><i></i><em id="thPresTxt">Offline</em></span></div></div></div>
+      <div class="msgs" id="msgs"></div>
+      <div class="typ" id="typ" hidden role="status" aria-label="Typing"><i></i><i></i><i></i></div>
+      <div class="composer"><textarea id="reply" rows="1" maxlength="2000" placeholder="Write a reply" aria-label="Reply"></textarea><button class="btn pri" id="send" type="button" style="width:auto">Send</button></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-announce" hidden>
+    <div id="annSk" aria-hidden="true" hidden><div class="sk sk-h" style="width:70px;height:12px"></div><div class="sk" style="height:42px;border-radius:12px"></div><div class="sk sk-h" style="width:80px;height:12px"></div><div class="sk" style="height:122px;border-radius:12px"></div><div class="sk" style="width:60px;height:10px;margin-top:8px"></div><div class="sk sk-h" style="width:70px;height:12px"></div><div class="list"><div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div></div><div class="sk" style="height:44px;border-radius:99px;margin-top:16px"></div></div>
+    <div id="annReal">
+    <div class="seg" id="annMode" style="margin:14px 0 4px"><button type="button" data-m="dn" aria-pressed="true">Notify</button><button type="button" data-m="announcement" aria-pressed="false">Announcement</button><button type="button" data-m="promotion" aria-pressed="false">Promotion</button></div>
+    <h2>Send to</h2>
+    <div class="seg" id="aud"><button type="button" data-a="all" aria-pressed="true">Everyone</button><button type="button" data-a="client" aria-pressed="false">Clients</button><button type="button" data-a="earner" aria-pressed="false">Earners</button><button type="button" id="audUser" data-a="user" aria-pressed="false">A user</button></div>
+    <div id="annUser" hidden>
+      <div id="auPickBox" hidden></div>
+      <div id="auFind">
+        <div class="seg" id="auCat"><button type="button" data-c="client" aria-pressed="true">Clients</button><button type="button" data-c="earner" aria-pressed="false">Earners</button><button type="button" data-c="admin" aria-pressed="false">Admins</button></div>
+        <input class="field" id="auSearch" type="search" placeholder="Search name or email" aria-label="Search users">
+        <div class="list" id="auList" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <h2 id="annTitleH">Title</h2>
+    <input class="field" id="annTitle" type="text" maxlength="60" placeholder="Title (optional)" aria-label="Title" style="margin-top:0">
+    <h2>Message</h2>
+    <textarea class="field" id="annMsg" rows="5" maxlength="400" placeholder="What should users know?" style="margin-top:0"></textarea>
+    <p class="note" id="annCount">0 / 400</p>
+    <label class="sw" style="margin-top:12px"><input type="checkbox" id="annEmail"><i></i><span>Also send to email</span></label>
+    <h2>Preview</h2>
+    <div class="list"><div class="row"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 10v4h3l5 4V6L7 10zM16 9a4 4 0 0 1 0 6"/></svg></div><div class="t"><b id="annPrevT">Notification</b><span id="annPrev" style="white-space:normal">Your message appears here</span></div><div class="r"><span>Just now</span></div></div></div>
+    <button class="btn pri" id="annSend" type="button" style="margin-top:16px">Send notification</button>
+    <p class="note" id="annStatus" role="status"></p>
+  </div>
+  </section>
+</main>
+
+<nav class="nav" id="nav" aria-label="Sections">
+  <button data-v="overview" aria-current="true"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>Overview</button>
+  <button data-v="database"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.700 3 3 7 3s7-1.300 7-3V6M5 12v6c0 1.700 3 3 7 3s7-1.300 7-3v-6"/></svg>Database</button>
+  <button data-v="attention"><svg viewBox="0 0 24 24"><path d="M12 4l9 16H3zM12 10v4M12 17v.5"/></svg>Attention<span class="badge" id="bAtt" hidden></span></button>
+  <button data-v="support"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>Support<span class="badge" id="bSup" hidden></span></button>
+  <button data-v="announce"><svg viewBox="0 0 24 24"><path d="M4 10v4h3l5 4V6L7 10zM16 9a4 4 0 0 1 0 6"/></svg>Announce</button>
+</nav>
+<aside class="pn" id="pn" role="dialog" aria-modal="true" aria-labelledby="pnTitle" aria-hidden="true">
+  <header class="pn-head"><button class="pn-back" id="pnBack" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><div class="pn-t"><b id="pnTitle"></b><span id="pnSub"></span></div></header>
+  <div class="pn-body" id="pnBody"></div>
+</aside>
+<div class="md-bg" id="md" aria-hidden="true"><div class="md" id="mdBox" role="alertdialog" aria-modal="true" aria-labelledby="mdTitle" tabindex="-1"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="mv" id="mv" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <div class="mv-top">
+    <button class="mv-b" id="mvX" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <span class="mv-z" id="mvZ">100%</span>
+    <button class="mv-b" id="mvReset" type="button" hidden>Reset</button>
+  </div>
+  <div class="mv-stage" id="mvStage"><img id="mvImg" alt="Attachment" draggable="false"></div>
+  <div class="mv-hint">Pinch or double tap to zoom, drag to move</div>
+</div>
+<div class="off" id="off" hidden role="status"><span id="offTxt">You're offline.</span><button class="btn" id="offRetry" type="button">Retry</button></div>
+<div class="net" id="net" hidden><div class="net-in"><div class="net-ico"><svg viewBox="0 0 24 24"><path d="M2 8.8a15 15 0 0 1 4-2.5M22 8.8a15 15 0 0 0-9.5-3.7M5 12.5a10 10 0 0 1 3-1.9M19 12.5a10 10 0 0 0-4.200-2.600M8.500 16a5 5 0 0 1 7 0M12 20v.01M3 3l18 18"/></svg></div><h3>Can't reach BoostGrid</h3><p id="netMsg">Check your connection, then try again.</p><p id="netAuto" style="font-size:12px;margin-top:8px"></p><button class="btn pri" id="netRetry" type="button">Try again</button></div></div>
+
+
+<script>
+(function(){var r=document.documentElement,k='ps-theme',t=null;try{t=localStorage.getItem(k)}catch(e){}
+if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';r.setAttribute('data-theme',t);
+document.getElementById('theme').addEventListener('click',function(){t=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',t);try{localStorage.setItem(k,t)}catch(e){}})})();
+</script>
+<script type="module">
+import { client, databases, DATABASE_ID, COLLECTIONS as C, Query, requireSession, getUserProfile, callFunction, FUNCTIONS, sendSupportMessage, hydrateProtectedMedia, logout } from "./lib/appwrite-config.js";
+import * as AW from "./lib/appwrite-config.js";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const money = n => "₦" + Math.round(Number(n) || 0).toLocaleString("en-NG");
+const tsOf = d => d.createdAt || d.crestedAt || d.$createdAt;
+const ago = iso => { const d = new Date(iso), s = (Date.now() - d) / 1000; if (s < 60) return "Just now"; if (s < 3600) return Math.floor(s / 60) + " min ago";
+  if (d.toDateString() === new Date().toDateString()) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); if (s < 172800) return "Yesterday"; return d.toLocaleDateString([], { day: "numeric", month: "short" }); };
+const ls = (d, ...a) => d.listDocuments(DATABASE_ID, ...a);
+const count = async (col, q) => { try { return (await ls(databases, col, [...q, Query.limit(1)])).total; } catch { return null; } };
+let tt; const toast = m => { const e = $("toast"); e.textContent = m; e.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => e.classList.remove("show"), 2600); };
+const setSync = (c, t) => { $("sync").className = "sync " + c; $("syncTxt").textContent = t; };
+const badge = (id, n) => { const b = $(id); b.textContent = n > 99 ? "99+" : n; b.hidden = !n; };
+const I = { in:'<svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>', out:'<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>', cash:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.500"/></svg>' };
+const row = (ico, t, s, r, rs, extra = "") => `<div class="row" ${extra}><div class="ico">${ico}</div><div class="t"><b>${esc(t)}</b><span>${esc(s)}</span></div><div class="r">${r}${rs ? `<span>${esc(rs)}</span>` : ""}</div></div>`;
+const SK_ROWS = '<div class="sk-row"><span class="sk" style="width:36px;height:36px;border-radius:11px;flex:none"></span><div class="sk-col"><span class="sk" style="height:12px;width:55%"></span><span class="sk" style="height:10px;width:35%"></span></div><span class="sk" style="width:44px;height:12px"></span></div>'.repeat(4);
+const RING = '<div class="ring" role="status" aria-label="Loading"><svg viewBox="25 25 50 50"><circle cx="50" cy="50" r="20"/></svg></div>';
+const SKMSGS = ["62%:left","44%:right","70%:left","38%:right"].map(x => { const [w, a] = x.split(":"); return `<span class="sk" style="width:${w};height:38px;border-radius:14px;align-self:${a === "left" ? "flex-start" : "flex-end"}"></span>`; }).join("");
+const dbBusy = new Set();   // pending loaders in the Database tab; while any is showing, the whole tab is just the spinner
+const dbWait = (tag, on) => { on ? dbBusy.add(tag) : dbBusy.delete(tag); $("v-database").classList.toggle("dbwait", dbBusy.size > 0); };
+const S = { view: "overview", col: "users", docs: [], cursor: null, total: 0, thread: null, name: {}, aud: "all" };
+const cap = x => String(x).charAt(0).toUpperCase() + String(x).slice(1);
+
+
+/* back navigation (same handler as the client dashboard): layers register with BackNav.add(id, closeFn) and
+   BackNav.remove(id); back closes the top layer, then returns to Overview, then leaves */
+const BackNav = (() => {
+  const stack = [];        // open layers, bottom to top: { id, close, entry, alive }
+  const ops = [];          // history operations, run one at a time so they never race
+  let waiting = false;     // true while we wait for the popstate caused by our own history.back()
+  let inGesturePop = false; // true while handling a popstate the browser fired on its own (a real back gesture)
+  let timer = null;
+  let activated = !!(navigator.userActivation && navigator.userActivation.hasBeenActive);
+
+  function pump(){
+    while(!waiting && ops.length){
+      const op = ops.shift();
+      if(op.type === 'push'){
+        if(op.layer.alive && !op.layer.entry){
+          // a push queued during a back-gesture popstate is deferred to the next task; pushing synchronously makes
+          // some mobile browsers drop the entry ("works once, then closes the app")
+          if(inGesturePop){
+            op.layer.entry = true;   // reserve now so add()/remove() see it immediately
+            const layer = op.layer;
+            setTimeout(() => {
+              if(layer.alive) history.pushState({ sh:1 }, '');
+              else layer.entry = false;   // closed again before we got to push it
+            }, 0);
+          } else {
+            history.pushState({ sh:1 }, '');
+            op.layer.entry = true;
+          }
+        }
+      } else {
+        waiting = true;
+        history.back();
+        timer = setTimeout(release, 350);   // safety net if popstate never arrives
+      }
+    }
+  }
+
+  function release(){
+    clearTimeout(timer);
+    waiting = false;
+    pump();
+  }
+
+  function add(id, close, opts){
+    if(stack.some(l => l.id === id)) return;
+    const layer = { id, close, entry:false, alive:true };
+    if(opts && opts.base) stack.unshift(layer); else stack.push(layer);
+    if(activated){ ops.push({ type:'push', layer }); pump(); }
+  }
+
+  function remove(id){
+    const i = stack.findIndex(l => l.id === id);
+    if(i < 0) return;                        // already removed (closed by the back gesture)
+    const layer = stack.splice(i, 1)[0];
+    layer.alive = false;
+    if(layer.entry){
+      layer.entry = false;
+      ops.push({ type:'back' });
+      pump();
+    }
+  }
+
+  window.addEventListener('popstate', () => {
+    if(waiting){ release(); return; }        // came from our own history.back()
+    const top = stack.pop();
+    if(!top) return;
+    top.alive = false;
+    top.entry = false;                       // the browser already consumed its history entry
+    inGesturePop = true;
+    try{ top.close(); }
+    finally{ inGesturePop = false; }
+  });
+
+  // browsers ignore history entries added before the first tap, so self-opening layers wait via
+  // BackNav.whenActive(fn)
+  const waiters = [];
+  function activate(){
+    if(activated) return;
+    activated = true;
+    stack.forEach(l => { if(!l.entry) ops.push({ type:'push', layer:l }); });
+    pump();
+    // small delay so the tap that woke the page is not also felt by what opens next
+    setTimeout(() => waiters.splice(0).forEach(fn => fn()), 350);
+  }
+  ['pointerup','touchend','mousedown','keydown'].forEach(t =>
+    window.addEventListener(t, activate, { capture:true, passive:true })
+  );
+
+  function isActive(){ return activated; }
+  function whenActive(fn){ if(waiters.indexOf(fn) < 0) waiters.push(fn); }
+
+  // true while anything sits on top of the page (banner, alert, panel, ...)
+  function hasOverlay(){ return stack.some(l => l.id !== 'tab'); }
+
+  return { add, remove, isActive, whenActive, hasOverlay };
+})();
+
+/* scroll lock shared by panel + modal */
+const Lock = (() => { let n = 0; return { on() { if (!n++) document.body.style.overflow = "hidden"; }, off() { if (n > 0 && !--n) document.body.style.overflow = ""; } }; })();
+
+/* slide panel: Panel.open({ id, title, sub?, render(body), click(e)?, onClose()? }); the first view slides in,
+   later ones swap in place, each with its own BackNav layer
+   Panel.back() = header arrow, Panel.closeAll() = leave, Panel.refresh() = redraw the top view */
+const Panel = (() => {
+  const el = $("pn"), body = $("pnBody"), ttl = $("pnTitle"), sub = $("pnSub"), views = [];
+  let busy = null, opener = null;
+  const lid = i => "pn" + i;
+  const draw = v => { ttl.textContent = v.title; sub.textContent = v.sub || ""; v.render(body); };
+  function swap(v, dir, y) {
+    clearTimeout(busy); body.className = "pn-body out";
+    busy = setTimeout(() => {
+      draw(v); body.scrollTop = y || 0; body.className = "pn-body " + (dir > 0 ? "in-f" : "in-b");
+      busy = setTimeout(() => { body.className = "pn-body"; busy = null; }, 260);
+    }, 150);
+  }
+  function hide() {
+    if (!el.classList.contains("open")) return;
+    el.classList.remove("open"); el.setAttribute("aria-hidden", "true"); Lock.off();
+    clearTimeout(busy); busy = null; body.className = "pn-body";
+    if (opener && opener.isConnected) opener.focus({ preventScroll: true }); opener = null;
+  }
+  function open(v) {
+    const top = views.at(-1); if (top && top.id === v.id) return;
+    if (top) top.scroll = body.scrollTop; else opener = document.activeElement;
+    views.push(v); BackNav.add(lid(views.length - 1), () => pop(true));
+    if (top) { swap(v, 1); return; }
+    clearTimeout(busy); busy = null; body.className = "pn-body"; draw(v); body.scrollTop = 0;
+    el.classList.add("open"); el.setAttribute("aria-hidden", "false"); Lock.on();
+    setTimeout(() => $("pnBack").focus({ preventScroll: true }), 340);
+  }
+  // fromGesture = the browser already consumed this layer's history entry
+  function pop(fromGesture) {
+    if (!views.length) return;
+    if (!fromGesture) BackNav.remove(lid(views.length - 1));
+    const v = views.pop(); if (v.onClose) v.onClose();
+    const prev = views.at(-1);
+    if (prev) swap(prev, -1, prev.scroll); else hide();
+  }
+  function closeAll() {
+    while (views.length) { BackNav.remove(lid(views.length - 1)); const v = views.pop(); if (v.onClose) v.onClose(); }
+    hide();
+  }
+  function refresh() { const v = views.at(-1); if (!v || busy) return; const y = body.scrollTop; v.render(body); body.scrollTop = y; }
+  $("pnBack").addEventListener("click", () => pop(false));
+  body.addEventListener("click", e => { const v = views.at(-1); if (v && v.click) v.click(e); });
+  return { open, back: () => pop(false), closeAll, refresh, isOpen: () => views.length > 0 };
+})();
+
+/* modal: await Modal.open({ tone, icon, title, text?, quote?, rows?, actions, dismissible }) resolves the chosen
+   action's value (null if dismissed)
+   Modal.confirm({ title, text, rows, confirm, cancel, tone }) is the shortcut; one shows at a time, the rest
+   queue */
+const Modal = (() => {
+  const bg = $("md"), box = $("mdBox"), queue = []; let cur = null, prevFocus = null, nextT = null;
+  const ICON = {
+    warn: '<svg viewBox="0 0 24 24"><path d="M12 4l9 16H3zM12 10v4M12 17v.5"/></svg>',
+    info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg>',
+    good: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', in: I.in, out: I.out
+  };
+  const TONE_ICON = { info: "info", good: "good", warn: "warn", bad: "warn", none: "info" };
+  function paint(o) {
+    const tone = o.tone || "info", acts = o.actions && o.actions.length ? o.actions : [{ label: "Done", kind: "pri", value: true }];
+    box.className = "md t-" + tone;
+    box.innerHTML =
+      (o.icon === false ? "" : `<div class="md-ico">${ICON[o.icon || TONE_ICON[tone]] || ICON.info}</div>`) +
+      `<h3 class="md-title" id="mdTitle">${esc(o.title)}</h3>` +
+      (o.text ? `<p class="md-text">${esc(o.text)}</p>` : "") +
+      (o.quote ? `<div class="md-quote">${esc(o.quote)}</div>` : "") +
+      (o.rows && o.rows.length ? `<div class="md-rows">${o.rows.filter(r => !blank(r[1])).map(([l, v, m]) => `<div class="rec-row"><span>${esc(l)}</span><b>${m ? `<span class="mono">${esc(v)}</span>` : esc(v)}</b></div>`).join("")}</div>` : "") +
+      `<div class="md-acts${acts.length > 2 ? " col" : ""}">${acts.map((a, i) => `<button class="btn ${a.kind || "ghost"}" data-i="${i}" type="button">${esc(a.label)}</button>`).join("")}</div>`;
+    return acts;
+  }
+  function next() {
+    const it = queue.shift(); if (!it) return;
+    cur = it; it.acts = paint(it.o);
+    prevFocus = document.activeElement; Lock.on();
+    bg.classList.add("on"); bg.setAttribute("aria-hidden", "false");
+    BackNav.add("modal", () => finish(null, true));
+    setTimeout(() => box.focus({ preventScroll: true }), 60);
+  }
+  function finish(val, fromGesture) {
+    if (!cur) return; const it = cur; cur = null;
+    bg.classList.remove("on"); bg.setAttribute("aria-hidden", "true"); Lock.off();
+    if (!fromGesture) BackNav.remove("modal");
+    if (prevFocus && prevFocus.isConnected) prevFocus.focus({ preventScroll: true });
+    it.res(val);
+    clearTimeout(nextT); nextT = setTimeout(next, 260);   // let the close animation finish before a queued one opens
+  }
+  const open = o => new Promise(res => { queue.push({ o, res }); if (!cur && !nextT) next(); else if (!cur) { clearTimeout(nextT); nextT = null; next(); } });
+  const confirm = o => open({
+    tone: "warn",
+    actions: [{ label: o.cancel || "Cancel", kind: "ghost", value: false }, { label: o.confirm || "Confirm", kind: o.tone === "bad" ? "danger" : "pri", value: true }],
+    ...o
+  }).then(v => v === true);
+  bg.addEventListener("click", e => {
+    if (!cur) return;
+    const b = e.target.closest("[data-i]");
+    if (b) return finish(cur.acts[b.dataset.i].value);
+    if (e.target === bg && cur.o.dismissible !== false) finish(null);
+  });
+  // Escape closes the top layer: modal first, then the bottom sheet is left to its own handler, then the panel
+  document.addEventListener("keydown", e => {
+    if (cur) {
+      if (e.key === "Escape" && cur.o.dismissible !== false) { e.preventDefault(); finish(null); }
+      else if (e.key === "Tab") { const f = [...box.querySelectorAll("button")]; if (!f.length) return;
+        const i = f.indexOf(document.activeElement), n = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1); e.preventDefault(); f[n].focus(); }
+      return;
+    }
+    if (e.key === "Escape" && Panel.isOpen() && !document.querySelector(".sheet-bg.on")) Panel.back();
+  });
+  return { open, confirm, dismiss: () => finish(null), isOpen: () => !!cur };
+})();
+
+const dayLabel = iso => { const d = new Date(iso), t = new Date(), y = new Date(t), k = x => x.toDateString(); y.setDate(t.getDate() - 1);
+  return k(d) === k(t) ? "Today" : k(d) === k(y) ? "Yesterday" : d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: d.getFullYear() === t.getFullYear() ? undefined : "numeric" }); };
+const CHEV = '<svg class="chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+// activity = platform fees in (+) and paid earner withdrawals out (-), newest first; i indexes S.acts so a tap
+// finds the full record
+const sg = n => (n < 0 ? "−" : "") + money(Math.abs(n));
+const wdSent = w => Number(w.netAmount) || Number(w.amount) || 0;   // amount actually sent to the earner (charge excluded)
+function buildActs() {
+  const t = x => Date.parse(x) || 0;
+  S.acts = [
+    ...(S.fees || []).map(r => ({ k: "fee", amt: Number(r.amount) || 0, ts: tsOf(r), r })),
+    ...((S.wdr && S.wdr.docs) || []).map(r => ({ k: "wd", amt: -wdSent(r), ts: r.approvedAt || tsOf(r), r }))
+  ].sort((x, y) => t(y.ts) - t(x.ts));
+}
+const actBtn = (a, i) => { const wd = a.k === "wd", r = a.r;
+  const title = wd ? "Earner withdrawal" : r.source === "withdrawal_fee" ? "Withdrawal fee" : "Project fee";
+  const sub = wd ? esc(uname(r.userId)) : "Ref " + esc(String(r.relatedId || "").slice(-6) || "—");
+  return `<button class="row tap" data-ai="${i}" type="button"><div class="ico">${wd ? I.out : I.in}</div><div class="t"><b>${title}</b><span>${sub} · ${esc(ago(a.ts))}</span></div><div class="r">${wd ? `<b class="neg">${sg(a.amt)}</b>` : `<b class="pos">+${money(a.amt)}</b>`}</div></button>`; };
+function openAct(a) {
+  if (!a) return; const r = a.r;
+  if (a.k === "wd") {
+    Modal.open({ tone: "warn", icon: "out", title: "Earner withdrawal", text: sg(a.amt),
+      rows: [["Earner", uname(r.userId)], ["Fee kept", money(r.charge)], ["Bank", r.bankName], ["Account name", r.accountName], ["Account number", r.accountNumber, true], ["Paid", fmtDate(a.ts)], ["Withdrawal ID", r.withdrawalId || r.$id, true]] });
+  } else {
+    const wd = r.source === "withdrawal_fee";
+    Modal.open({ tone: wd ? "info" : "good", icon: wd ? "out" : "in", title: wd ? "Withdrawal fee" : "Project fee", text: "+" + money(r.amount),
+      rows: [["Collected", fmtDate(a.ts)], ["Reference", r.relatedId, true], ["Record ID", r.$id, true]] });
+  }
+}
+const actClick = e => { const b = e.target.closest("[data-ai]"); if (!b) return false; openAct((S.acts || [])[b.dataset.ai]); return true; };
+$("actList").innerHTML = SK_ROWS;   // until the first activity load lands
+function renderActs() {
+  buildActs();
+  $("actList").innerHTML = (S.acts || []).slice(0, 6).map(actBtn).join("") || '<div class="empty">No activity yet. Fees and earner withdrawals appear here as they happen.</div>';
+  Panel.refresh();
+}
+$("actList").addEventListener("click", actClick);
+
+/* cash position: verified deposits - sent to earners - our fees - clients' unused balance = still owed to
+   earners (incl. admin-held project money and pending withdrawals) */
+function renderCash() {
+  const wait = [S.dep, S.wdr, S.cbal, S.fees].some(x => x === undefined); $("cashSk").hidden = !wait; $("cashReal").hidden = wait;   // whole card is a skeleton until every figure has landed
+  const d = S.dep, w = S.wdr, c = S.cbal, f = S.fees === undefined ? undefined : S.fees && { sum: S.fees.reduce((t, r) => t + (Number(r.amount) || 0), 0) }, sk = '<span class="sk" style="width:80px;height:14px;display:inline-block;vertical-align:-2px"></span>', sk2 = '<span class="sk" style="width:112px;height:10px;display:inline-block"></span>', n = (x, one) => x.toLocaleString() + " " + one + (x === 1 ? "" : "s");
+  $("cIn").innerHTML = d === undefined ? sk : d ? "+" + money(d.sum) : "—";
+  $("cInN").innerHTML = d === undefined ? sk2 : ""; if (d) $("cInN").textContent = n(d.n, "verified deposit");
+  $("cOut").innerHTML = w === undefined ? sk : w ? sg(-w.sum) : "—";
+  $("cOutN").innerHTML = w === undefined ? sk2 : ""; if (w) $("cOutN").textContent = n(w.n, "paid withdrawal");
+  $("cFee").innerHTML = f === undefined ? sk : f ? sg(-f.sum) : "—";
+  $("cCli").innerHTML = c === undefined ? sk : c ? sg(-c.sum) : "—";
+  $("cCliN").innerHTML = c === undefined ? sk2 : ""; if (c) $("cCliN").textContent = n(c.nz, "client") + " holding balance";
+  const res = $("cRes"), bar = $("cBar"), pct = $("cPct");
+  if (d === undefined || w === undefined || f === undefined || c === undefined) { res.className = ""; res.innerHTML = sk.replace("80px", "120px").replace("14px", "28px"); bar.style.width = "0"; pct.innerHTML = '<span class="sk" style="width:62%;height:10px;display:inline-block"></span>'; return; }
+  if (!d || !w || !f || !c) { res.className = ""; res.textContent = "—"; bar.style.width = "0"; pct.textContent = "Could not read all the figures. Tap Syncing at the top to retry."; return; }
+  const net = d.sum - w.sum - f.sum - c.sum, share = d.sum > 0 ? Math.max(0, Math.min(net / d.sum * 100, 100)) : 0;
+  res.className = net < 0 ? "neg" : ""; res.textContent = sg(net); bar.style.width = share.toFixed(1) + "%";
+  pct.textContent = d.sum > 0 ? (net < 0 ? "Deposits fall short of payouts, fees and client balances by " + money(-net) : share.toFixed(1) + "% of verified deposits is owed to earners") : "No verified deposits yet";
+}
+async function loadClientBal() {
+  try { let sum = 0, nz = 0, cur = null;
+    for (let i = 0; i < 100; i++) { const q = [Query.equal("role", "client"), Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.USERS, q); r.documents.forEach(u => { const v = Number(u.balance) || 0; sum += v; if (v > 0) nz++; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    S.cbal = { sum, nz }; renderCash();
+  } catch { S.cbal = false; renderCash(); throw new Error("Could not read client balances"); }
+}
+async function loadWithdrawn() {
+  try { let sum = 0, n = 0, cur = null; const docs = [];
+    for (let i = 0; i < 50; i++) { const q = [Query.equal("status", "approved"), Query.orderDesc("$createdAt"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.WITHDRAWALS, q); r.documents.forEach(x => { sum += wdSent(x); n++; docs.push(x); }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    S.wdr = { sum, n, docs }; renderCash(); renderActs();
+    await fetchNames(docs.map(x => x.userId)); renderActs();   // earners' names, then redraw
+  } catch { S.wdr = false; renderCash(); throw new Error("Could not read withdrawals"); }
+}
+
+function activityView() {
+  const st = { f: "all", n: 60 };
+  return {
+    id: "activity", title: "Recent activity", sub: "Fees in, earner withdrawals out",
+    render(body) {
+      const rows = (S.acts || []).map((a, i) => [a, i]).filter(([a]) => st.f === "all" || a.k === (st.f === "wd" ? "wd" : "fee"));
+      const net = rows.reduce((t, [a]) => t + a.amt, 0), shown = rows.slice(0, st.n);
+      let h = `<div class="seg" role="group" aria-label="Filter">${[["all", "All"], ["fee", "Fees"], ["wd", "Withdrawals"]].map(([k, l]) => `<button type="button" data-f="${k}" aria-pressed="${st.f === k}">${l}</button>`).join("")}</div>` +
+        `<div class="mini"><div><small>Entries</small><b>${rows.length.toLocaleString()}</b></div><div><small>${st.f === "all" ? "Net" : "Total"}</small><b class="${net < 0 ? "neg" : ""}">${sg(net)}</b></div></div>`;
+      let last = "";
+      shown.forEach(([a, i]) => { const d = dayLabel(a.ts); if (d !== last) { if (last) h += "</div>"; h += `<h2>${esc(d)}</h2><div class="list">`; last = d; } h += actBtn(a, i); });
+      h += last ? "</div>" : '<div class="list" style="margin-top:14px"><div class="empty">No activity yet. Fees and earner withdrawals appear here as they happen.</div></div>';
+      if (rows.length > shown.length) h += `<button class="btn ghost" data-more type="button" style="display:block;margin:14px auto 0">Show ${Math.min(60, rows.length - shown.length)} more</button>`;
+      body.innerHTML = h;
+    },
+    click(e) {
+      if (actClick(e)) return;
+      const f = e.target.closest("[data-f]"); if (f) { st.f = f.dataset.f; st.n = 60; this.render($("pnBody")); $("pnBody").scrollTop = 0; return; }
+      if (e.target.closest("[data-more]")) { const y = $("pnBody").scrollTop; st.n += 60; this.render($("pnBody")); $("pnBody").scrollTop = y; }
+    }
+  };
+}
+
+const MOON = '<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+const SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const SYNC_I = '<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>';
+const themeNow = () => document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+
+/* reviews (owner) */
+const STAR_I = '<svg viewBox="0 0 24 24"><path d="M12 3l2.700 5.600 6.100.9-4.400 4.300 1 6.100L12 17l-5.400 2.900 1-6.100L3.200 9.500l6.100-.9z"/></svg>';
+const MSG_I = '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+const TRASH_I = '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg>';
+const RV = { d: null, err: "", tab: "rev", write: null, busy: false };
+const stars5 = n => "★".repeat(n) + "☆".repeat(5 - n);
+async function rvLoad() {
+  try { RV.d = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "list-reviews" }); RV.err = ""; }
+  catch (e) { RV.err = /Unknown action/.test(e.message) ? "The reviews actions aren't in ledger-ops yet. Add them and redeploy." : (e.message || "Could not load reviews"); }
+  Panel.refresh(); setTimeout(Panel.refresh, 450);
+}
+/* payouts (owner): switch between manual and automatic */
+const PO = { d: null, err: "", busy: false, banks: null };
+const COIN_I = '<svg viewBox="0 0 24 24"><rect x="2.500" y="6" width="19" height="12" rx="2.500"/><circle cx="12" cy="12" r="2.500"/><path d="M6 9.500v5M18 9.500v5"/></svg>';
+async function poLoad() {
+  try { PO.d = await callFunction(FUNCTIONS.WALLET_OPS, { action: "get-payout-settings" }); PO.err = ""; }
+  catch (e) { PO.err = /Unknown action/.test(e.message) ? "Payout settings aren't in wallet-ops yet. Add them and redeploy." : (e.message || "Could not load payout settings"); }
+  Panel.refresh(); setTimeout(Panel.refresh, 450);
+}
+function payoutView() {
+  return {
+    id: "payouts", title: "Payouts", sub: "Manual or automatic",
+    render(body) {
+      if (!PO.d) { body.innerHTML = PO.err ? `<p class="note err">${esc(PO.err)}</p><button class="btn ghost" data-po="retry" type="button">Try again</button>` : '<div class="empty">Loading…</div>'; if (!PO.err) poLoad(); return; }
+      const d = PO.d, miss = [!d.ready.key && "FLUTTERWAVE_SECRET_KEY", !d.ready.hash && "FLW_WEBHOOK_HASH"].filter(Boolean);
+      body.innerHTML =
+        `<div class="list"><label class="row" style="cursor:pointer"><div class="ico">${COIN_I}</div><div class="t"><b>Automatic payouts</b><span>${d.auto ? "On: withdrawals are paid the moment an earner confirms them" : "Off: you pay each withdrawal and mark it paid"}</span></div><div class="r"><span class="sw"><input type="checkbox" id="poSw" ${d.auto ? "checked" : ""}><i></i></span></div></label></div>` +
+        (miss.length ? `<p class="note err" style="margin-top:10px">Not ready: ${miss.map(esc).join(" and ")} ${miss.length > 1 ? "are" : "is"} missing on the wallet-ops function.</p>` : "") +
+        `<h2>Limits</h2><p class="note">Anything outside these stays pending for you to pay by hand.</p>` +
+        `<label class="note" for="poMax" style="display:block;margin-top:10px">Largest single withdrawal (₦)</label><input class="field" id="poMax" type="text" inputmode="numeric" value="${d.maxAmount}" style="min-height:0;margin-top:4px">` +
+        `<label class="note" for="poDay" style="display:block;margin-top:10px">Most one earner can receive per 24 hours (₦)</label><input class="field" id="poDay" type="text" inputmode="numeric" value="${d.dailyMax}" style="min-height:0;margin-top:4px">` +
+        `<button class="btn pri" data-po="save" type="button" style="margin-top:14px;width:100%">Save limits</button>` +
+        `<h2>How it works</h2><p class="note" style="line-height:1.6">When it is on and an earner taps Withdraw, the transfer starts straight away, only if: the signed-in earner is withdrawing from their own wallet, the bank returned the account name, the amount is over the minimum with the charge already taken, it is within the limits above, and the account has no flags. Anything else waits for you. Flutterwave confirms the result; a failed transfer is refunded to the earner automatically.</p>` +
+        `<h2>Bank codes</h2><p class="note">Checks which Flutterwave bank each bank in the earner's list is matched to.</p><button class="btn ghost" data-po="banks" type="button" style="margin-top:10px;width:100%">Check bank codes</button>` +
+        (PO.banks ? `<div class="list" style="margin-top:12px">${PO.banks.map(m => `<div class="row"><div class="t"><b>${esc(m.ours)}</b><span style="white-space:normal">${m.flutterwave ? esc(m.flutterwave) + " · " + esc(m.code) : "<span style=\"color:#e5484d\">No match" + (m.code ? " (fallback " + esc(m.code) + ")" : "") + "</span>"}</span></div></div>`).join("")}</div>` : "");
+    },
+    async click(e) {
+      const sw = e.target.closest("#poSw"), b = e.target.closest("[data-po]");
+      if (!sw && !b) return; if (sw) e.preventDefault();   // the confirm below decides; render() then shows the real state
+      if (PO.busy) return; const a = sw ? "sw" : b.dataset.po;
+      const num = id => Number((($(id) || {}).value || "").replace(/[^\d]/g, ""));
+      const save = async (patch, okMsg) => { PO.busy = true; try { PO.d = { ...PO.d, ...(await callFunction(FUNCTIONS.WALLET_OPS, { action: "set-payout-settings", ...patch })) }; toast(okMsg); } catch (err) { toast(err.message || "Could not save"); } PO.busy = false; Panel.refresh(); };
+      if (a === "retry") { PO.err = ""; Panel.refresh(); }
+      else if (a === "banks") { b.disabled = true; b.textContent = "Checking…"; try { PO.banks = (await callFunction(FUNCTIONS.WALLET_OPS, { action: "list-banks" })).matches; } catch (err) { toast(err.message || "Could not load the bank list"); } Panel.refresh(); }
+      else if (a === "save") save({ maxAmount: num("poMax"), dailyMax: num("poDay") }, "Limits saved");
+      else if (a === "sw") {
+        const on = !PO.d.auto;
+        if (on && !await Modal.confirm({ tone: "warn", title: "Turn on automatic payouts?", text: `Verified earners' withdrawals up to ${money(PO.d.maxAmount)} will be sent from your Flutterwave balance straight away, without waiting for you. Keep that balance funded.`, confirm: "Turn on" })) return;
+        if (!on && !await Modal.confirm({ tone: "info", title: "Switch back to manual?", text: "From now on new withdrawals wait for you to pay them and mark them as paid. Transfers already sent are not affected.", confirm: "Switch to manual" })) return;
+        save({ auto: on, maxAmount: PO.d.maxAmount, dailyMax: PO.d.dailyMax }, on ? "Automatic payouts are on" : "Payouts are manual again");
+      }
+    }
+  };
+}
+
+function reviewsView() {
+  return {
+    id: "reviews", title: "Reviews", sub: "Platform ratings",
+    render(body) {
+      if (!RV.d) { body.innerHTML = RV.err ? `<p class="note err">${esc(RV.err)}</p><button class="btn ghost" data-rv="retry" type="button">Try again</button>` : '<div class="empty">Loading…</div>'; if (!RV.err) rvLoad(); return; }
+      const st = RV.d.stats, rows = RV.tab === "rev" ? RV.d.reviews : RV.d.later, av = n => `<div class="ico" style="font-weight:700">${esc((n || "?").charAt(0).toUpperCase())}</div>`;
+      const list = rows.map(r => {
+        const meta = RV.tab === "rev" ? `<span class="rv-meta"><span class="rv-stars">${stars5(r.stars)}</span><span>${esc(pretty(r.role || "member"))} · ${esc(ago(r.at))}</span></span>` : `<span class="rv-meta"><span>${esc(pretty(r.role || "member"))} · tapped remind me later ${esc(ago(r.at))}</span></span>`;
+        const txt = RV.tab === "rev" ? `${r.tags.length ? `<span class="rv-tags">${r.tags.map(t => `<span class="rv-tag">${esc(t)}</span>`).join("")}</span>` : ""}${r.note ? `<p class="rv-note">${esc(r.note)}</p>` : ""}` : "";
+        const acts = RV.tab === "rev" ? `<div style="display:flex;gap:6px"><button class="pen" data-rv="write" data-id="${esc(r.id)}" type="button" aria-label="Write to ${esc(r.name)}">${MSG_I}</button><button class="pen" data-rv="del" data-id="${esc(r.id)}" type="button" aria-label="Delete review by ${esc(r.name)}">${TRASH_I}</button></div>` : "";
+        const box = RV.write === r.id ? `<div style="padding:0 0 12px"><textarea class="field" id="rvMsg" rows="3" maxlength="400" placeholder="Write back to ${esc(r.name)}" aria-label="Message"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" data-rv="sendw" data-id="${esc(r.id)}" type="button">Send notification</button><button class="btn ghost" data-rv="cancelw" type="button">Cancel</button></div></div>` : "";
+        return `<div class="row rv">${av(r.name)}<div class="t"><b>${esc(r.name)}</b><span>${meta}</span>${txt}</div><div class="r">${acts}</div></div>${box}`;
+      }).join("");
+      body.innerHTML =
+        `<div class="mini"><div><small>Average</small><b>${st.reviewed ? st.avg.toFixed(1) + " ★" : "—"}</b></div><div><small>Reviewed</small><b>${st.reviewed}</b></div></div>` +
+        `<div class="mini"><div><small>Remind later</small><b>${st.later}</b></div><div><small>No response</small><b>${st.noReply}</b></div></div>` +
+        `<button class="btn pri" data-rv="all" type="button" style="width:100%;margin-top:14px">Send rating modal to all members</button>` +
+        `<div class="seg" id="rvTabs" style="margin:14px 0 4px"><button type="button" data-rv="tab" data-t="rev" aria-pressed="${RV.tab === "rev"}">Reviews</button><button type="button" data-rv="tab" data-t="later" aria-pressed="${RV.tab === "later"}">Remind later</button></div>` +
+        `<div class="list">${list || `<div class="empty">${RV.tab === "rev" ? "No reviews yet." : "Nobody has tapped remind me later."}</div>`}</div>`;
+    },
+    async click(e) {
+      const b = e.target.closest("[data-rv]"); if (!b || RV.busy) return; const a = b.dataset.rv, r = RV.d && RV.d.reviews.find(x => x.id === b.dataset.id);
+      if (a === "retry") { RV.err = ""; Panel.refresh(); }
+      else if (a === "tab") { RV.tab = b.dataset.t; RV.write = null; Panel.refresh(); }
+      else if (a === "write") { RV.write = b.dataset.id; Panel.refresh(); setTimeout(() => { const m = $("rvMsg"); if (m) m.focus({ preventScroll: true }); }, 50); }
+      else if (a === "cancelw") { RV.write = null; Panel.refresh(); }
+      else if (a === "sendw" && r) {
+        const msg = ($("rvMsg") || {}).value; if (!msg || !msg.trim()) return toast("Write a message first");
+        if (!await Modal.confirm({ tone: "warn", title: `Send to ${r.name}?`, text: "It arrives as a notification. It can't be recalled.", quote: msg.trim(), confirm: "Send" })) return;
+        RV.busy = true;
+        try { await callFunction(FUNCTIONS.LEDGER_OPS, { action: "announce-user", userId: r.id, kind: "dn", title: "About your review", message: msg.trim() }); RV.write = null; toast("Notification sent"); }
+        catch (err) { toast(err.message || "Could not send"); }
+        RV.busy = false; Panel.refresh();
+      }
+      else if (a === "del" && r) {
+        if (!await Modal.confirm({ tone: "bad", title: "Delete this review?", text: `${r.name} rated ${r.stars} of 5. It can't be undone, but they can review again.`, confirm: "Delete", cancel: "Keep" })) return;
+        RV.busy = true;
+        try { await callFunction(FUNCTIONS.LEDGER_OPS, { action: "delete-review", userId: r.id }); toast("Review deleted"); await rvLoad(); }
+        catch (err) { toast(err.message || "Could not delete"); }
+        RV.busy = false;
+      }
+      else if (a === "all") {
+        if (!await Modal.confirm({ tone: "warn", title: "Send to all members?", text: "Every client and earner gets a notification that opens the rating modal. It can't be recalled.", confirm: "Send" })) return;
+        RV.busy = true; let sent = 0;
+        try {
+          for (const aud of ["client", "earner"]) { let cursor = null; for (let i = 0; i < 200; i++) { const x = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "announce", kind: "rate", audience: aud, title: "Rate BoostGrid", message: "Tell us how BoostGrid is working for you.", cursor }); sent += x.sent || 0; if (x.done) break; cursor = x.cursor; } }
+          toast(`Sent to ${sent} member${sent === 1 ? "" : "s"}`);
+        } catch (err) { toast((sent ? `Stopped after ${sent}: ` : "") + (err.message || "Could not send")); }
+        RV.busy = false; rvLoad();
+      }
+    },
+    onClose() { RV.write = null; }
+  };
+}
+
+
+/* owner access attempts (bottom of the profile) */
+// ledger-ops logs every email that tries "Claim owner access" without being on OWNER_EMAILS; Block disables that
+// email's account (no sign-in, no re-registering); Unblock undoes it
+const CL = { d: null, err: "", busy: false, loading: false };
+const prefAuto = () => { try { return localStorage.getItem("ps-autoretry") !== "0"; } catch { return true; } };
+async function clLoad() {
+  if (CL.loading) return; CL.loading = true;
+  try { CL.d = (await callFunction(FUNCTIONS.LEDGER_OPS, { action: "list-claim-attempts" })).attempts; CL.err = ""; }
+  catch (e) { CL.err = /Unknown action/.test(e.message) ? "The claim attempts actions aren't in ledger-ops yet. Add them and redeploy." : /could not be found|not found/i.test(e.message) ? "Create the owner_claims collection first (see SCHEMA_REFERENCE.txt)." : (e.message || "Could not load attempts"); }
+  CL.loading = false; Panel.refresh(); setTimeout(Panel.refresh, 450);
+}
+function claimsSection() { return `<section class="cl-sec">${claimsInner()}</section>`; }
+function claimsInner() {
+  const head = `<div class="h2row"><h2>Owner access attempts</h2><button class="btn ghost" data-act="claims" type="button">Refresh</button></div>`;
+  if (CL.err) return head + `<div class="list"><div class="empty">${esc(CL.err)}</div></div>`;
+  if (!CL.d) { clLoad(); return head + `<div class="list" aria-hidden="true">${SK_ROWS.split('<div class="sk-row">').slice(1, 3).map(x => '<div class="sk-row">' + x).join("")}</div>`; }
+  const n = CL.d.reduce((t, a) => t + a.attempts, 0), bl = CL.d.filter(a => a.blocked).length;
+  const rows = CL.d.map(a => `<div class="row"><div class="ico">${esc((a.email[0] || "?").toUpperCase())}</div><div class="t"><b>${esc(a.email)}</b><span>${a.attempts} attempt${a.attempts === 1 ? "" : "s"} · last ${esc(ago(a.lastAt))}${a.blocked ? " · blocked" : ""}</span></div><div class="r">${a.blocked
+    ? `<button class="btn" data-act="unblock" data-email="${esc(a.email)}" type="button">Unblock</button>` : `<button class="btn danger" data-act="block" data-email="${esc(a.email)}" type="button">Block</button>`}</div></div>`).join("");
+  return head + (CL.d.length ? `<div class="mini"><div><small>Emails</small><b>${CL.d.length}</b></div><div><small>Attempts</small><b>${n}</b></div><div><small>Blocked</small><b>${bl}</b></div></div>` : "") +
+    `<div class="list">${rows || '<div class="empty">Nobody has tried to claim owner access.</div>'}</div>` +
+    (CL.d.length ? `<p class="note">Block turns that email's sign-in off and stops it signing up again. Unblock undoes it.</p>` : "");
+}
+async function claimBlock(email, block) {
+  const a = (CL.d || []).find(x => x.email === email); if (!a || CL.busy) return;
+  if (!await Modal.confirm({ tone: block ? "bad" : "info", title: (block ? "Block " : "Unblock ") + a.email + "?",
+    text: block ? "They are signed out now and can't sign in or sign up with this email. You can undo this any time." : "Their account is switched back on. They can sign in and sign up again.",
+    confirm: block ? "Block" : "Unblock", cancel: "Cancel", rows: [["Email", a.email], ["Attempts", String(a.attempts)], ["Last attempt", fmtDate(a.lastAt)]] })) return;
+  CL.busy = true;
+  try { await callFunction(FUNCTIONS.LEDGER_OPS, { action: "set-email-block", email: a.email, blocked: block }); a.blocked = block; toast(block ? "Email blocked" : "Email unblocked"); }
+  catch (e) { toast(e.message || "Could not update"); }
+  CL.busy = false; Panel.refresh();
+}
+
+function profileView() {
+  return {
+    id: "profile", title: "Profile", sub: "Owner account",
+    render(body) {
+      const me = S.me || {}, nm = me.name || me.nickname || "Owner", fees = S.fees || [], f = n => n == null ? "—" : n.toLocaleString();
+      const total = fees.reduce((t, r) => t + (Number(r.amount) || 0), 0), th = themeNow();
+      const acct = [["Nickname", "text", me.nickname], ["Joined", "date", tsOf(me)], ["Account ID", "code", me.$id]].filter(([, , v]) => !blank(v)).map(([l, t, v]) => recRow(l, t, v)).join("");
+      body.innerHTML =
+        `<div class="pf"><div class="pf-av"><svg class="av-fig" viewBox="0 10 380 380" aria-hidden="true"><use href="#avFig"/></svg></div><b class="nm">${esc(nm)}</b>${me.email ? `<span class="em">${esc(me.email)}</span>` : ""}<span class="pill t-none">Owner</span></div>` +
+        `<div class="mini"><div><small>Platform revenue</small><b>${money(total)}</b></div><div><small>Fees collected</small><b>${f(fees.length)}</b></div></div>` +
+        `<div class="mini"><div><small>Clients</small><b>${f(S.cl)}</b></div><div><small>Earners</small><b>${f(S.er)}</b></div></div>` +
+        `<div class="h2row"><h2>Recent activity</h2><button class="btn ghost" data-act="all" type="button">See all</button></div>` +
+        `<div class="list">${(S.acts || []).slice(0, 4).map(actBtn).join("") || '<div class="empty">No activity yet.</div>'}</div>` +
+        (acct ? `<h2>Account</h2><div class="rec">${acct}</div>` : "") +
+        `<h2>Payouts</h2><div class="list"><button class="row tap" data-act="payouts" type="button"><div class="ico">${COIN_I}</div><div class="t"><b>Payout mode</b><span>Switch between manual and automatic</span></div>${CHEV}</button></div>` +
+        `<h2>Reviews</h2><div class="list"><button class="row tap" data-act="reviews" type="button"><div class="ico">${STAR_I}</div><div class="t"><b>Platform reviews</b><span>Ratings, notes and who to ask</span></div>${CHEV}</button></div>` +
+        `<h2>Preferences</h2><div class="list">` +
+        `<button class="row tap" data-act="theme" type="button"><div class="ico">${th === "light" ? SUN : MOON}</div><div class="t"><b>Appearance</b><span>${th === "light" ? "Light" : "Dark"} · tap to switch</span></div>${CHEV}</button>` +
+        `<button class="row tap" data-act="auto" type="button"><div class="ico"><svg viewBox="0 0 24 24"><path d="M5 12.500a10 10 0 0 1 14 0M8.500 16a5 5 0 0 1 7 0M12 20v.01"/></svg></div><div class="t"><b>Offline retry</b><span>${prefAuto() ? "Retries by itself when you're back online" : "Waits for you to tap Try again"}</span></div><div class="r"><b>${prefAuto() ? "On" : "Off"}</b></div></button>` +
+        `<button class="row tap" data-act="sync" type="button"><div class="ico">${SYNC_I}</div><div class="t"><b>Refresh data</b><span>${esc($("syncTxt").textContent)}</span></div>${CHEV}</button></div>` +
+        claimsSection() +
+        `<button class="btn danger so" data-act="out" type="button">Sign out</button>`;
+    },
+    async click(e) {
+      if (actClick(e)) return;
+      const b = e.target.closest("[data-act]"); if (!b) return;
+      if (b.dataset.act === "all") Panel.open(activityView());
+      else if (b.dataset.act === "payouts") { PO.d = null; PO.err = ""; Panel.open(payoutView()); }
+      else if (b.dataset.act === "reviews") { RV.d = null; RV.err = ""; RV.tab = "rev"; Panel.open(reviewsView()); }
+      else if (b.dataset.act === "theme") { $("theme").click(); Panel.refresh(); }
+      else if (b.dataset.act === "sync") { $("sync").click(); toast("Refreshing"); }
+      else if (b.dataset.act === "auto") { try { localStorage.setItem("ps-autoretry", prefAuto() ? "0" : "1"); } catch {} Panel.refresh(); }
+      else if (b.dataset.act === "claims") { CL.d = null; CL.err = ""; Panel.refresh(); }
+      else if (b.dataset.act === "block") claimBlock(b.dataset.email, true);
+      else if (b.dataset.act === "unblock") claimBlock(b.dataset.email, false);
+      else if (b.dataset.act === "out" && await Modal.confirm({ tone: "warn", title: "Sign out?", text: "You will need to log in again to reach the platform space.", confirm: "Sign out" })) logout("login.html");
+    }
+  };
+}
+$("avatar").addEventListener("click", () => { CL.d = null; CL.err = ""; Panel.open(profileView()); });
+$("actAll").addEventListener("click", () => Panel.open(activityView()));
+
+/* tabs */
+const TITLES = { overview: null, database: "Database", attention: "Attention", support: "Support chat", announce: "Announcement" };
+let greet = "Platform space", annT;
+function setView(v) {
+  if (S.thread && v !== "support") closeThread();
+  Panel.closeAll();
+  S.view = v; try { sessionStorage.setItem("ps-view", v); } catch {}
+  document.querySelectorAll(".view").forEach(s => s.hidden = s.id !== "v-" + v);
+  document.querySelectorAll("#nav button").forEach(b => b.dataset.v === v ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current"));
+  $("title").textContent = TITLES[v] || greet; scrollTo({ top: 0 });
+  // back gesture from any other tab returns to Overview
+  if (v === "overview") BackNav.remove("tab"); else BackNav.add("tab", () => setView("overview"), { base: true });
+  if (v === "database" && !S.docs.length) loadDb(true);
+  if (v === "announce") { $("annSk").hidden = false; $("annReal").hidden = true; clearTimeout(annT); annT = setTimeout(() => { $("annSk").hidden = true; $("annReal").hidden = false; }, 450); }
+}
+$("nav").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setView(b.dataset.v); });
+
+/* overview */
+async function fetchRevenue() {
+  const out = []; let cur = null;
+  for (let i = 0; i < 100; i++) { const q = [Query.orderDesc("$createdAt"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+    const r = await ls(databases, C.PLATFORM_REVENUE, q); out.push(...r.documents); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+  return out;
+}
+async function loadOverview() {
+  const [rows, cl, er] = await Promise.all([fetchRevenue(), count(C.USERS, [Query.equal("role", "client")]), count(C.USERS, [Query.equal("role", "earner")])]);
+  const sum = a => a.reduce((t, r) => t + (Number(r.amount) || 0), 0), total = sum(rows), w = Math.floor(total);
+  $("total").innerHTML = "₦" + w.toLocaleString("en-NG") + "<small>." + String(Math.round((total - w) * 100)).padStart(2, "0") + "</small>";
+  $("fProj").textContent = money(sum(rows.filter(r => r.source === "project_fee"))); $("fWd").textContent = money(sum(rows.filter(r => r.source === "withdrawal_fee")));
+  const st = new Date(); st.setHours(0, 0, 0, 0); st.setDate(st.getDate() - 6);
+  const bk = Array.from({ length: 7 }, (_, i) => ({ d: new Date(+st + i * 864e5), v: 0 })); let tw = 0, lw = 0;
+  rows.forEach(r => { const t = new Date(tsOf(r)), a = Number(r.amount) || 0; if (t >= st) tw += a; else if (+t >= +st - 7 * 864e5) lw += a;
+    const b = bk.find(b => t >= b.d && t < new Date(+b.d + 864e5)); if (b) b.v += a; });
+  const dl = $("delta"); if (!lw) { dl.textContent = tw ? money(tw) + " this week" : "No fees this week"; dl.classList.remove("down"); }
+  else { const p = (tw - lw) / lw * 100; dl.textContent = (p >= 0 ? "+" : "−") + Math.abs(p).toFixed(1) + "% this week"; dl.classList.toggle("down", p < 0); }
+  let run = 0; const pts = bk.map(b => (run += b.v)), mx = Math.max(...pts, 1);
+  $("sparkPath").setAttribute("d", pts.map((v, i) => (i ? "L" : "M") + (2 + i * 80 / 6).toFixed(1) + " " + (30 - v / mx * 26).toFixed(1)).join(" "));
+  const bm = Math.max(...bk.map(b => b.v), 1);
+  $("chart").innerHTML = bk.map((b, i) => `<div class="bar${i === 6 ? " on" : ""}" style="height:${Math.max(b.v / bm * 66, 3)}px" title="${esc(money(b.v))}"></div>`).join("");
+  $("days").innerHTML = bk.map(b => `<span>${b.d.toLocaleDateString([], { weekday: "short" })}</span>`).join("");
+  $("nClients").textContent = cl == null ? "—" : cl.toLocaleString(); $("nEarners").textContent = er == null ? "—" : er.toLocaleString();
+  S.fees = rows; S.cl = cl; S.er = er;
+  renderCash(); renderActs();
+}
+
+// all clients combined: sum of every project's engagement fee (platform fee not counted) + number of projects
+async function loadProjectTotals() {
+  try { let sum = 0, n = 0, cur = null;
+    for (let i = 0; i < 100; i++) { const q = [Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.PROJECTS, q); r.documents.forEach(p => { sum += Number(p.engagementFee) || 0; n++; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    $("pWorth").textContent = money(sum); $("pCount").textContent = n.toLocaleString();
+  } catch { $("pWorth").textContent = $("pCount").textContent = "—"; }
+}
+
+async function loadDeposits() {
+  try { let sum = 0, n = 0, cur = null;
+    for (let i = 0; i < 50; i++) { const q = [Query.equal("status", "verified"), Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.DEPOSITS, q); r.documents.forEach(d => { sum += Number(d.amount) || 0; n++; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    $("dTotal").textContent = money(sum); $("dCount").textContent = n.toLocaleString();
+    S.dep = { sum, n }; renderCash();
+  } catch { $("dTotal").textContent = $("dCount").textContent = "—"; S.dep = false; renderCash(); }
+}
+
+/* database */
+const DB = {
+  users: ["Users", C.USERS, d => [d.name || d.email || d.$id, "Joined " + fmtDate(tsOf(d)), pretty(d.role || ""), ["client", "earner", "admin"].includes(d.role) ? "Balance " + money(d.balance) : undefined], true],
+  projects: ["Projects", C.PROJECTS, d => [d.title || d.$id, ago(tsOf(d)), lab("projects", d.projectStatus), money(d.engagementFee)], true],
+  tasks: ["Tasks", C.TASKS, d => [d.title || d.$id, d.status, money(d.reward)]],
+  deposits: ["Deposits", C.DEPOSITS, d => [d.clientName || d.userId, [d.status, d.provider].filter(Boolean).join(", "), money(d.amount)]],
+  withdrawals: ["Withdrawals", C.WITHDRAWALS, d => [d.accountName || d.userId, [d.status, d.bankName].filter(Boolean).join(", "), money(wdSent(d))]],
+  revenue: ["Revenue", C.PLATFORM_REVENUE, d => [d.source === "withdrawal_fee" ? "Withdrawal fee" : "Project fee", "Ref " + (d.relatedId || "—"), money(d.amount)]],
+  notifications: ["Notifications", C.NOTIFICATIONS, d => [d.type, d.message, d.read ? "Read" : "Unread"]],
+  activity: ["Admin log", C.ADMIN_ACTIVITIES, d => [d.title || d.type, d.detail || d.type, d.amount ? money(d.amount) : ""]]
+};
+const TONE = { "in-progress": "info", available: "info", completed: "good", approved: "good", verified: "good", approve: "good", withdrawal_fee: "good", earner: "good",
+  pending: "warn", pending_flag_review: "warn", verified_uncredited: "warn", escalate: "warn", pending_admin: "warn", admin: "warn",
+  "v-report": "bad", rejected: "bad", flagged: "bad", failed: "bad", reject: "bad", flag_confirm: "bad", suspended: "bad",
+  client: "info", project_fee: "info", reinstate: "info", closed: "none", flag_dismiss: "none", owner: "none", "false": "info", "true": "none" };
+const tn = v => { const t = TONE[String(v ?? "").toLowerCase()]; return t ? "t-" + t : ""; };
+const subTxt = (s, v) => { s = String(s ?? ""); v = String(v ?? ""); return v && s.toLowerCase().startsWith(v.toLowerCase()) ? `<em class="st">${esc(s.slice(0, v.length))}</em>${esc(s.slice(v.length))}` : esc(s); };
+// group-by field and its known values; any other value in the newest 100 records gets its own tile
+const GROUPS = {
+  users: ["role", [["client", "Clients"], ["earner", "Earners"], ["admin", "Admins"], ["pending_admin", "Pending admins"], ["owner", "Owner"]]],
+  projects: ["projectStatus", [["in-progress", "In progress"], ["completed", "Completed"], ["v-report", "V-report"]]],
+  tasks: ["status", [["Available", "Available"], ["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"], ["flagged", "Flagged"], ["pending_flag_review", "Flag review"]]],
+  deposits: ["status", [["pending", "Pending"], ["verified", "Verified"], ["verified_uncredited", "Uncredited"], ["closed", "Closed"]]],
+  withdrawals: ["status", [["pending", "Pending"], ["approved", "Approved"], ["failed", "Failed"], ["rejected", "Rejected"]]],
+  revenue: ["source", [["project_fee", "Project fees"], ["withdrawal_fee", "Withdrawal fees"]]],
+  notifications: ["read", [[false, "Unread"], [true, "Read"]]],
+  activity: ["type", [["approve", "Approve"], ["reject", "Reject"], ["flag_confirm", "Flag confirmed"], ["flag_dismiss", "Flag dismissed"], ["reinstate", "Reinstate"], ["escalate", "Escalate"]]]
+};
+Object.assign(S, { dbSeq: 0, fSeq: 0, filter: null, groups: [], fdocs: [], fcursor: null, ftotal: 0, fmore: false });
+const pretty = v => { v = String(v).replace(/[-_]/g, " "); return v.charAt(0).toUpperCase() + v.slice(1); };
+const sameV = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+const lab = (k, v) => v == null || v === "" ? "" : (GROUPS[k][1].find(([x]) => sameV(x, v))?.[1] || pretty(v));
+const rb = r => DB[S.col][3] ? `<b class="st">${esc(r)}</b>` : `<b>${esc(r)}</b>`;
+async function loadStats(seq) {
+  const key = S.col, [field, known] = GROUPS[key], col = DB[key][1];
+  let sample = []; try { sample = (await ls(databases, col, [Query.orderDesc("$createdAt"), Query.limit(100)])).documents; } catch {}
+  const vals = known.map(([v, l]) => ({ v, l }));
+  sample.forEach(d => { const v = d[field]; if (v != null && v !== "" && !vals.some(x => sameV(x.v, v))) vals.push({ v, l: pretty(v) }); });
+  const [tot, ...cs] = await Promise.all([count(col, []), ...vals.map(x => count(col, [Query.equal(field, x.v)]))]);
+  if (seq !== S.dbSeq) return;
+  S.groups = vals.map((x, i) => ({ ...x, n: cs[i] })); const f = n => n == null ? "—" : n.toLocaleString();
+  const other = tot == null ? 0 : tot - S.groups.reduce((t, g) => t + (g.n || 0), 0);
+  $("dbStats").innerHTML = `<div class="ustat"><div class="ustat-top"><small>Total ${esc(DB[key][0].toLowerCase())}</small><b>${f(tot)}</b></div>${S.groups.map(g => `<div class="ustat-row"><span>${esc(g.l)}</span><b>${f(g.n)}</b></div>`).join("")}${other > 0 ? `<div class="ustat-row"><span>Other</span><b>${other.toLocaleString()}</b></div>` : ""}</div>` +
+    `<div class="tiles">${S.groups.map((g, i) => `<button class="tile ${tn(g.v)}" data-i="${i}" aria-pressed="${!!S.filter && sameV(S.filter.v, g.v)}" ${g.n === 0 ? "disabled" : ""}><b>${f(g.n)}</b><span>${tn(g.v) ? '<i class="dot"></i>' : ""}${esc(g.l)}</span></button>`).join("")}</div>`;
+}
+function applyFilter() {
+  document.querySelectorAll(".tile").forEach(t => t.setAttribute("aria-pressed", !!S.filter && sameV(S.filter.v, S.groups[t.dataset.i].v)));
+  if (S.filter) loadFiltered(true); else { [...dbBusy].forEach(t => t[0] === "f" && dbBusy.delete(t)); dbWait("", false); renderDb(); }
+}
+async function loadFiltered(reset) {
+  const f = S.filter, col = DB[S.col][1]; if (!f) return;
+  const tag = "f" + (++S.fSeq);
+  if (reset) { S.fdocs = []; S.fcursor = null; $("dbList").className = "list"; $("dbList").innerHTML = RING; dbWait(tag, true); }
+  try { const q = [Query.equal(GROUPS[S.col][0], f.v), Query.orderDesc("$createdAt"), Query.limit(40)]; if (S.fcursor) q.push(Query.cursorAfter(S.fcursor));
+    const r = await ls(databases, col, q); if (S.filter !== f) return;
+    S.fdocs.push(...r.documents); S.ftotal = r.total; S.fcursor = r.documents.at(-1)?.$id || S.fcursor; S.fmore = r.documents.length === 40; renderDb();
+  } catch (e) { if (S.filter === f) { $("dbList").innerHTML = `<div class="empty">Can't read ${esc(f.l)}: ${esc(e.message)}</div>`; $("dbMore").style.display = "none"; } }
+  finally { dbWait(tag, false); if (reset && S.fScroll && S.filter === f) { S.fScroll = false; $("dbList").scrollIntoView({ behavior: "smooth", block: "start" }); } }
+}
+$("dbStats").addEventListener("click", e => { const t = e.target.closest(".tile"); if (!t) return; const g = S.groups[t.dataset.i];
+  S.filter = S.filter && sameV(S.filter.v, g.v) ? null : { v: g.v, l: g.l }; $("dbSearch").value = "";
+  S.fScroll = !!S.filter; applyFilter(); });
+$("chips").innerHTML = Object.entries(DB).map(([k, v]) => `<button class="chip" data-c="${k}" aria-pressed="${k === S.col}">${v[0]}</button>`).join("");
+$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; S.col = b.dataset.c; S.filter = null; S.groups = [];
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === b)); $("dbSearch").value = ""; $("dbStats").innerHTML = ""; loadDb(true); });
+async function loadDb(reset) {
+  const key = S.col, [label, col] = DB[S.col];
+  const seq = reset ? ++S.dbSeq : S.dbSeq, tags = [seq + "list", seq + "stats"];
+  if (reset) { dbBusy.clear(); dbWait(tags[0], true); if (!S.groups.length) { $("dbStats").innerHTML = RING; dbWait(tags[1], true); }
+    loadStats(seq).finally(() => dbWait(tags[1], false)); if (S.filter) loadFiltered(true); S.docs = []; S.cursor = null; if (!S.filter) { $("dbList").className = ""; $("dbList").innerHTML = ""; } }
+  try { const q = [Query.orderDesc("$createdAt"), Query.limit(40)]; if (S.cursor) q.push(Query.cursorAfter(S.cursor));
+    const r = await ls(databases, col, q); if (seq !== S.dbSeq) return;
+    S.docs.push(...r.documents); S.total = r.total; S.cursor = r.documents.at(-1)?.$id || S.cursor; S.more = r.documents.length === 40; if (!S.filter) renderDb();
+  } catch (e) { if (seq === S.dbSeq && !S.filter) { $("dbList").innerHTML = `<div class="empty">Can't read ${esc(label)}: ${esc(e.message)}</div>`; $("dbMore").style.display = "none"; } }
+  finally { dbWait(tags[0], false); }
+}
+function renderDb() {
+  const f = S.filter, docs = f ? S.fdocs : S.docs, total = f ? S.ftotal : S.total, more = f ? S.fmore : S.more;
+  const q = $("dbSearch").value.trim().toLowerCase(), map = DB[S.col][2];
+  const shown = docs.map((d, i) => [d, i]).filter(([d]) => !q || JSON.stringify(d).toLowerCase().includes(q));
+  $("dbNote").hidden = !!f; $("dbNote").textContent = `${shown.length} shown, ${total.toLocaleString()} in ${DB[S.col][0].toLowerCase()}`;
+  $("dbList").className = f ? "slist" : "list";
+  const empty = '<div class="empty">No matching records.</div>';
+  $("dbList").innerHTML = f
+    ? `<div class="shead"><div><b>${esc(f.l)}</b><span>${shown.length} of ${total.toLocaleString()}</span></div><button class="btn ghost" data-clear type="button">Show all</button></div>` +
+      (shown.map(([d, i]) => { const [t, s, r, rs] = map(d), c = tn(d[GROUPS[S.col][0]]); return `<button class="srow ${c}" data-i="${i}" aria-expanded="false"><div class="t"><b>${c ? '<i class="dot"></i>' : ""}${esc(t)}</b><span>${subTxt(s, d[GROUPS[S.col][0]])}</span></div><div class="r">${rb(r)}<span>${esc(rs ?? ago(tsOf(d)))}</span></div></button>`; }).join("") || empty)
+    : shown.map(([d, i]) => { const [t, s, r, rs] = map(d), c = tn(d[GROUPS[S.col][0]]); return `<button class="row ${c}" data-i="${i}" aria-expanded="false"><div class="ico">${esc(String(t || "?").charAt(0).toUpperCase())}</div><div class="t"><b>${esc(t)}</b><span>${subTxt(s, d[GROUPS[S.col][0]])}</span></div><div class="r">${rb(r)}<span>${esc(rs ?? ago(tsOf(d)))}</span></div></button>`; }).join("") || empty;
+  $("dbMore").style.display = more && !q ? "block" : "none";
+}
+$("dbSearch").addEventListener("input", renderDb); $("dbMore").addEventListener("click", () => S.filter ? loadFiltered(false) : loadDb(false));
+/* record details (expanded row) */
+const fmtDate = v => { const d = new Date(v); return isNaN(d) ? String(v) : d.toLocaleString([], { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }); };
+const blank = v => v == null || v === "" || (Array.isArray(v) && !v.length);
+const uname = id => S.name[id]?.n || "User " + String(id).slice(-5);
+// t = keys tried for the title, p = pill field, s = sections of [key, label, type]; anything unlisted goes under
+// "Show other fields"
+const REC = {
+  users: { t: ["name", "email"], p: "role", s: [
+    ["Account", [["email", "Email"], ["nickname", "Nickname"], ["accountStatus", "Account status", "pill"], ["createdAt", "Joined", "date"]]],
+    ["Wallet", [["balance", "Balance", "money"], ["withBal", "Withdrawal balance", "money"]]],
+    ["Tasks", [["Available", "Available", "nz"], ["pending", "Pending", "nz"], ["completed", "Completed", "nz"], ["rejected", "Rejected", "nz"], ["flagged", "Flagged", "nz"]]],
+    ["Referrals", [["referralCode", "Code", "code"], ["referrals", "Referred", "nz"], ["referredBy", "Referred by", "code"], ["usedReferralCode", "Used a code", "bool"], ["referralMilestone20Claimed", "Milestone of 20 claimed", "bool"]]],
+    ["Profile", [["socialLinks", "Socials", "social"], ["bio", "Bio", "long"]]]
+  ] },
+  projects: { t: ["title", "projectCode"], p: "projectStatus", s: [
+    ["Description", [["description", "", "long"]]],
+    ["Money", [["reward", "Reward", "money"], ["projectFee", "Project fee", "money"], ["engagementFee", "Engagement fee", "money"]]],
+    ["Project", [["projectCode", "Code", "code"], ["engagers", "Engagers", "n"], ["requiredPlatform", "Platform", "pill"], ["requiredPlatformDescription", "Platform note", "long"], ["link", "Link"], ["screenshotUrls", "Screenshots", "files"]]],
+    ["People and dates", [["createdByName", "Client"], ["adminName", "Admin"], ["createdAt", "Created", "date"], ["completedAt", "Completed", "date"]]],
+    ["V-report", [["reportedByName", "Reported by"], ["reportedAt", "Reported", "date"], ["reason", "Reason", "reasons"]]]
+  ] },
+  tasks: { t: ["title", "taskCode"], p: "status", s: [
+    ["Description", [["description", "", "long"]]],
+    ["Task", [["taskCode", "Code", "code"], ["projectCode", "Project code", "code"], ["reward", "Reward", "money"], ["requiredPlatform", "Platform", "pill"], ["link", "Link"], ["assignedTo", "Assigned to", "user"], ["createdByName", "Client"], ["adminName", "Admin"], ["createdAt", "Created", "date"]]],
+    ["Submission", [["submissionText", "Note", "long"], ["submissionImages", "Proof", "files"], ["submissionImage", "Proof (old)", "files"], ["submissionDate", "Submitted", "date"]]],
+    ["Review", [["approvedAt", "Approved", "date"], ["rejectedAt", "Rejected", "date"], ["rejectionReason", "Rejection reason", "long"]]],
+    ["Flag", [["flagReason", "Reason"], ["flagNote", "Note", "long"], ["flaggedByName", "Flagged by"], ["flaggedAt", "Flagged", "date"], ["preFlagStatus", "Status before", "pill"]]],
+    ["Suspension", [["suspensionReason", "Reason"], ["suspensionReportedByName", "Reported by"], ["suspendedAt", "Suspended", "date"], ["suspensionProjectCode", "Project code", "code"], ["suspensionLink", "Link"], ["suspensionDescription", "Description", "long"]]],
+    ["Reservation and reports", [["favoritedBy", "Reserved by", "user"], ["favoritedAt", "Reserved", "date"], ["reportedBy", "Reports", "len"]]]
+  ] },
+  deposits: { t: ["clientName", "userId"], p: "status", s: [
+    ["Payment", [["amount", "Amount", "money"], ["provider", "Provider", "pill"], ["bankName", "Bank"], ["reference", "Reference", "code"], ["transactionId", "Transaction", "code"], ["fileUrl", "Receipt", "files"]]],
+    ["Who and when", [["userId", "User", "user"], ["$createdAt", "Created", "date"], ["verifiedAt", "Verified", "date"], ["rejectReason", "Reject reason", "long"]]]
+  ] },
+  withdrawals: { t: ["accountName", "userId"], p: "status", s: [
+    ["Amounts", [["amount", "Requested", "money"], ["charge", "Charge", "money"], ["totalDeduction", "Total deducted", "money"], ["netAmount", "Paid out", "money"]]],
+    ["Account", [["accountName", "Account name"], ["bankName", "Bank"], ["accountNumber", "Account number", "code"]]],
+    ["Timeline", [["createdAt", "Requested", "date"], ["approvedAt", "Approved", "date"], ["editedAt", "Edited", "date"], ["rejectedAt", "Rejected", "date"], ["rejectReason", "Reject reason", "long"], ["failReason", "Fail reason", "long"]]],
+    ["Transfer", [["withdrawalId", "Withdrawal ID", "code"], ["userId", "User", "user"], ["paystackTransferStatus", "Transfer status", "pill"], ["paystackTransferCode", "Transfer code", "code"]]]
+  ] },
+  revenue: { t: ["source"], p: null, s: [
+    ["Fee", [["amount", "Amount", "money"], ["source", "Source", "pill"], ["relatedId", "Related ID", "code"], ["createdAt", "Collected", "date"]]]
+  ] },
+  notifications: { t: ["type"], p: "read", s: [
+    ["Message", [["message", "", "long"]]],
+    ["Details", [["amount", "Amount", "mz"], ["userId", "User", "user"], ["createdAt", "Sent", "date"]]]
+  ] },
+  activity: { t: ["title", "type"], p: "type", s: [
+    ["Detail", [["detail", "", "long"]]],
+    ["Action", [["amount", "Amount", "mz"], ["adminId", "Admin", "user"], ["taskId", "Task ID", "code"], ["projectId", "Project ID", "code"], ["createdAt", "When", "date"]]]
+  ] }
+};
+function recVal(t, v) {
+  switch (t) {
+    case "money": return esc(money(v));
+    case "mz": return Number(v) ? esc(money(v)) : null;
+    case "n": return esc((Number(v) || 0).toLocaleString());
+    case "nz": return Number(v) ? esc(Number(v).toLocaleString()) : null;
+    case "len": return Array.isArray(v) && v.length ? v.length + (v.length === 1 ? " report" : " reports") : null;
+    case "date": return esc(fmtDate(v));
+    case "pill": return `<span class="pill ${tn(v)}">${esc(pretty(v))}</span>`;
+    case "bool": return v ? "Yes" : "No";
+    case "code": return `<span class="mono">${esc(v)}</span>`;
+    case "user": return esc(uname(v));
+    case "files": { const n = Array.isArray(v) ? v.length : 1; return n + (n === 1 ? " file" : " files"); }
+    case "social": return (Array.isArray(v) ? v : [v]).map(s => { const [p, h, , st] = String(s).split("|"); return esc(pretty(p) + " " + (h || "") + (st ? " (" + st + ")" : "")); }).join("<br>");
+    default: return esc(v);
+  }
+}
+function recRow(l, t, v) {
+  if (t === "long" || t === "reasons") {
+    const txt = t === "reasons" ? [...new Set(String(v).split(/;\s*/).filter(Boolean))].join("; ") : String(v);
+    return `<div class="rec-long">${l ? `<span>${esc(l)}</span>` : ""}<p>${esc(txt)}</p></div>`;
+  }
+  const h = recVal(t, v); if (h == null) return "";
+  return `<div class="rec-row"><span>${esc(l)}</span><b>${h}</b></div>`;
+}
+function recInner(key, d) {
+  const sp = REC[key], used = new Set(), ids = []; let h = "";
+  let title = ""; for (const k of sp.t) { used.add(k); if (!title && !blank(d[k])) title = k === "type" || k === "source" ? (k === "source" ? (d[k] === "withdrawal_fee" ? "Withdrawal fee" : "Project fee") : pretty(d[k])) : d[k]; }
+  const pv = sp.p ? d[sp.p] : null; if (sp.p) used.add(sp.p);
+  const pl = sp.p === "read" ? (d.read ? "Read" : "Unread") : blank(pv) ? "" : pretty(pv);
+  const pen = key === "users" && WRITE_ROLES.includes(d.role) ? `<button class="pen" data-write="${esc(d.$id)}" type="button" aria-label="Write to ${esc(title || "this user")}">${PEN}</button>`
+    : key === "projects" || key === "tasks" ? `<button class="pen${wroteItem(key, d.$id) ? " done" : ""}" data-wpt="${key}" data-id="${esc(d.$id)}" type="button" aria-label="Write about this ${KIND_NOUN[key]}">${PEN}</button>` : "";
+  h += `<div class="rec-top"><b>${esc(title || d.$id)}</b><span class="rec-act">${pen}${pl ? `<span class="pill ${tn(pv)}">${esc(pl)}</span>` : ""}</span></div>`;
+  sp.s.forEach(([hd, fs]) => {
+    let rows = "";
+    fs.forEach(([k, l, t]) => {
+      used.add(k); const v = d[k];
+      if (blank(v) || (k === "requiredPlatform" && v === "none")) return;
+      if (t === "user") ids.push(v);
+      rows += recRow(l, t || "text", v);
+    });
+    if (rows) h += `<div class="rec-h">${esc(hd)}</div>${rows}`;
+  });
+  const ex = Object.keys(d).filter(k => !k.startsWith("$") && !used.has(k) && !blank(d[k]));
+  h += `<div class="rec-h">Record</div><div class="rec-row"><span>ID</span><b><span class="mono">${esc(d.$id)}</span></b></div>`;
+  if (ex.length) h += `<button class="btn ghost rec-btn" data-more data-n="${ex.length}" type="button">Show other fields (${ex.length})</button><div class="rec-x" hidden>${ex.map(k => {
+    let v = d[k]; v = typeof v === "object" ? JSON.stringify(v) : String(v);
+    return `<div class="rec-row"><span>${esc(k)}</span><b>${v.length > 120 ? v.length + " characters" : esc(v)}</b></div>`; }).join("")}</div>`;
+  return { h, ids };
+}
+function expand(b, d) {
+  const key = S.col, kv = document.createElement("div"), r = recInner(key, d);
+  kv.className = "rec"; kv.innerHTML = r.h; b.after(kv); b.setAttribute("aria-expanded", "true");
+  const need = [...new Set(r.ids)].filter(u => !S.name[u]).slice(0, 100);
+  if (need.length) ls(databases, C.USERS, [Query.equal("$id", need), Query.limit(100)]).then(x => {
+    x.documents.forEach(u => S.name[u.$id] = { n: u.name || u.nickname || u.email, r: u.role });
+    if (kv.isConnected) kv.innerHTML = recInner(key, d).h; }).catch(() => {});
+}
+$("dbList").addEventListener("click", e => {
+  const pb = e.target.closest("[data-wpt]");
+  if (pb) { const d = [...S.docs, ...S.fdocs].find(x => x.$id === pb.dataset.id); if (d) openWriteItem(pb.dataset.wpt, d); return; }
+  const wb = e.target.closest("[data-write]");
+  if (wb) { const u = [...S.docs, ...S.fdocs].find(x => x.$id === wb.dataset.write); if (u) openWrite(u); return; }
+  if (e.target.closest("[data-clear]")) { S.filter = null; applyFilter(); return; }
+  const mb = e.target.closest("[data-more]");
+  if (mb) { const x = mb.nextElementSibling; x.hidden = !x.hidden; mb.textContent = x.hidden ? `Show other fields (${mb.dataset.n})` : "Hide other fields"; return; }
+  const b = e.target.closest(".row,.srow"); if (!b) return; const nx = b.nextElementSibling;
+  if (nx && nx.classList.contains("rec")) { nx.remove(); b.setAttribute("aria-expanded", "false"); return; }
+  expand(b, (S.filter ? S.fdocs : S.docs)[b.dataset.i]);
+});
+
+/* attention */
+async function fetchNames(ids) {
+  const need = [...new Set(ids.filter(Boolean))].filter(u => !S.name[u]).slice(0, 100); if (!need.length) return;
+  try { (await ls(databases, C.USERS, [Query.equal("$id", need), Query.limit(100)])).documents.forEach(u => S.name[u.$id] = { n: u.name || u.nickname || u.email, r: u.role }); } catch {}
+}
+const ATT = { apps: 0, wd: 0, ban: 0, flag: 0 }; Object.assign(S, { rev: new Map(), bans: [], flags: [], wds: [], att: "admin" });
+function setAtt(k, n) {
+  ATT[k] = n; const m = { admin: ATT.apps, wd: ATT.wd, ban: ATT.ban, flag: ATT.flag };
+  Object.entries(m).forEach(([s, v]) => { const e = $("c-" + s); e.textContent = v > 99 ? "99+" : v; e.classList.toggle("on", v > 0); });
+  badge("bAtt", ATT.apps + ATT.wd + ATT.ban + ATT.flag);
+}
+function setAttTab(s) {
+  S.att = s; try { sessionStorage.setItem("ps-att", s); } catch {}
+  document.querySelectorAll("#attTabs button").forEach(c => { const on = c.dataset.s === s; c.setAttribute("aria-pressed", on); if (on) c.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" }); });
+  document.querySelectorAll(".sub").forEach(x => x.hidden = x.id !== "s-" + s);
+}
+$("attTabs").addEventListener("click", e => { const c = e.target.closest("button"); if (c) setAttTab(c.dataset.s); });
+{ let s = "admin"; try { s = sessionStorage.getItem("ps-att") || s; } catch {} setAttTab($("s-" + s) ? s : "admin"); }
+
+const acard = (title, pill, rows, acts) => `<div class="rec acard"><div class="rec-top"><b>${esc(title)}</b>${pill}</div>${rows}${acts ? `<div class="acts">${acts}</div>` : ""}</div>`;
+const arow = (l, h) => h == null || h === "" ? "" : `<div class="rec-row"><span>${esc(l)}</span><b>${h}</b></div>`;
+const along = (l, t) => t ? `<div class="rec-long"><span>${esc(l)}</span><p>${esc(t)}</p></div>` : "";
+const waited = iso => { const h = (Date.now() - new Date(iso)) / 36e5; if (isNaN(h)) return ""; const txt = h < 1 ? "Under 1 hour" : h < 48 ? Math.floor(h) + (Math.floor(h) === 1 ? " hour" : " hours") : Math.floor(h / 24) + " days";
+  return `<em class="st ${h > 72 ? "t-bad" : h > 24 ? "t-warn" : ""}">${txt}</em>`; };
+
+function renderBans() {
+  $("aBan").innerHTML = S.bans.map(u => {
+    const rq = S.rev.get(u.$id), body = rq ? String(rq.message || "").split(/\n\s*\n/).slice(1).join("\n\n").trim() : "";
+    const sc = Number(u.flagged) || 0;
+    return acard(u.name || u.nickname || u.email || u.$id, '<span class="pill t-bad">Banned</span>',
+      arow("Email", esc(u.email || "")) + arow("Role", esc(pretty(u.role || ""))) + arow("Flag score", `<em class="st t-bad">${sc} / 99</em>`) +
+      arow("Review request", rq ? `<em class="st t-warn">Sent ${esc(ago(tsOf(rq)))}</em>` : "None yet") + along("Their message", body),
+      `<button class="btn pri" style="width:auto" data-restore="${esc(u.$id)}" type="button">Restore account</button><button class="btn ghost" data-chat="${esc(u.$id)}" type="button">Open chat</button>`);
+  }).join("") || '<div class="list"><div class="empty">No banned accounts.</div></div>';
+}
+function renderFlags() {
+  $("aFlag").innerHTML = S.flags.map(t => acard(t.title || t.taskCode || t.$id, '<span class="pill t-warn">Flag review</span>',
+    arow("Reward", esc(money(t.reward))) + arow("Reason", esc(t.flagReason || "")) + arow("Flagged by", esc(t.flaggedByName || "")) +
+    arow("Earner", t.assignedTo ? esc(uname(t.assignedTo)) : "") + arow("Admin", esc(t.adminName || "")) +
+    arow("Waiting", waited(t.flaggedAt || t.$updatedAt)) + arow("Status before", t.preFlagStatus ? `<span class="pill ${tn(t.preFlagStatus)}">${esc(pretty(t.preFlagStatus))}</span>` : "") + along("Client's note", t.flagNote), "")).join("")
+    || '<div class="list"><div class="empty">No flagged tasks waiting for review.</div></div>';
+}
+function renderWd() {
+  $("aWd").innerHTML = (S.wds || []).map(w => acard(w.accountName || uname(w.userId), '<span class="pill t-warn">' + esc(money(w.netAmount ?? w.amount)) + '</span>',
+    arow("Earner", esc(uname(w.userId))) + arow("Bank", esc(w.bankName || "")) + arow("Account name", esc(w.accountName || "")) +
+    arow("Account number", `<span class="mono">${esc(w.accountNumber || "")}</span>`) + arow("Fee", esc(money(w.charge))) +
+    arow("Withdrawal ID", `<span class="mono">${esc(w.withdrawalId || w.$id)}</span>`) + arow("Waiting", waited(tsOf(w))),
+    w.flwReference ? `<button class="btn" style="width:auto" data-sync="${esc(w.$id)}" type="button">Check transfer</button>` : `<button class="btn pri" style="width:auto" data-pay="${esc(w.$id)}" type="button">Pay / mark as paid</button>`)).join("")
+    || '<div class="list"><div class="empty">No withdrawals waiting.</div></div>';
+}
+$("aWd").addEventListener("click", async e => {
+  const sy = e.target.closest("[data-sync]");
+  if (sy) {
+    sy.disabled = true; sy.textContent = "Checking…";
+    try { const r = await callFunction(FUNCTIONS.WALLET_OPS, { action: "sync-withdrawal", withdrawalDocId: sy.dataset.sync }); toast(r.status === "approved" ? "Paid. The bank confirmed it" : r.status === "failed" ? "Failed. The earner was refunded" : "Still processing at the bank"); loadAttention(); }
+    catch (err) { sy.disabled = false; sy.textContent = "Check transfer"; toast(err.message || "Could not check"); }
+    return;
+  }
+  const b = e.target.closest("[data-pay]"); if (!b) return; const w = (S.wds || []).find(x => x.$id === b.dataset.pay); if (!w) return;
+  if (!await Modal.confirm({ tone: "warn", title: "Pay this withdrawal?", text: "With automatic payouts on, this sends the money to the earner from your Flutterwave balance. With them off, only confirm after you have sent it yourself. It can't be undone.", confirm: "Pay / mark as paid",
+    rows: [["Amount", money(w.netAmount ?? w.amount)], ["Account name", w.accountName || uname(w.userId)], ["Bank", w.bankName], ["Account number", w.accountNumber, true]] })) return;
+  b.disabled = true; b.textContent = "Working…";
+  try { const r = await callFunction(FUNCTIONS.WALLET_OPS, { action: "process-withdrawal", withdrawalDocId: w.$id }); toast(r && r.auto ? "Transfer started. It is marked paid when the bank confirms" : "Withdrawal marked as paid"); loadAttention(); }
+  catch (err) { b.disabled = false; b.textContent = "Pay / mark as paid"; toast(err.message || "Could not pay"); }
+});
+async function loadAttention() {
+  const adminsPart = async () => {
+    let admins; try { const pre = S.pre; S.pre = null; admins = pre || (await callFunction(FUNCTIONS.LEDGER_OPS, { action: "list-admins" })).admins; }
+    catch (e) { $("aApps").innerHTML = $("aAdmins").innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+    const ad = (a, act, lbl, g) => row('<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.500-4 5-5 8-5s6.500 1 8 5"/></svg>', a.name || a.nickname || a.email, a.email, `<button class="btn ${g}" data-id="${esc(a.id)}" data-act="${act}" type="button">${lbl}</button>`, "");
+    const p = admins.filter(a => a.role === "pending_admin"), l = admins.filter(a => a.role === "admin");
+    $("aApps").innerHTML = p.map(a => ad(a, "approve", "Approve", "")).join("") || '<div class="empty">No applications waiting.</div>';
+    $("aAdmins").innerHTML = l.map(a => ad(a, "revoke", "Revoke", "ghost")).join("") || '<div class="empty">No active admins.</div>'; setAtt("apps", p.length);
+  };
+  const wdPart = async () => {
+    try { const r = await ls(databases, C.WITHDRAWALS, [Query.equal("status", ["pending", "edited"]), Query.orderAsc("$createdAt"), Query.limit(50)]);
+      await fetchNames(r.documents.map(w => w.userId)); S.wds = r.documents; setAtt("wd", r.total); renderWd();
+    } catch (e) { $("aWd").innerHTML = `<div class="list"><div class="empty">${esc(e.message)}</div></div>`; }
+  };
+  const banPart = async () => {
+    const rs = await Promise.allSettled([ls(databases, C.USERS, [Query.equal("accountStatus", "banned"), Query.limit(50)]), ls(databases, C.USERS, [Query.greaterThanEqual("flagged", 99), Query.limit(50)])]);
+    if (rs.every(x => x.status === "rejected")) { $("aBan").innerHTML = `<div class="list"><div class="empty">${esc(rs[0].reason?.message || "Could not read users")}</div></div>`; return; }
+    const m = new Map(); rs.forEach(x => x.status === "fulfilled" && x.value.documents.forEach(u => m.set(u.$id, u)));
+    S.bans = [...m.values()].sort((a, b) => String(b.$updatedAt).localeCompare(String(a.$updatedAt))); setAtt("ban", S.bans.length); renderBans();
+  };
+  const flagPart = async () => {
+    try { const r = await ls(databases, C.TASKS, [Query.equal("status", "pending_flag_review"), Query.orderDesc("$updatedAt"), Query.limit(50)]);
+      await fetchNames(r.documents.map(t => t.assignedTo)); S.flags = r.documents; setAtt("flag", r.total); renderFlags();
+    } catch (e) { $("aFlag").innerHTML = `<div class="list"><div class="empty">${esc(e.message)}</div></div>`; }
+  };
+  try { await Promise.all([adminsPart(), wdPart(), banPart(), flagPart()]); } finally { $("v-attention").classList.remove("first"); }
+}
+$("aBan").addEventListener("click", async e => {
+  const c = e.target.closest("[data-chat]"); if (c) { setView("support"); openThread(c.dataset.chat); return; }
+  const b = e.target.closest("[data-restore]"); if (!b) return; const u = S.bans.find(x => x.$id === b.dataset.restore); if (!u) return;
+  const sc = Math.min(Number(u.flagged) || 0, 66);
+  if (!await Modal.confirm({ tone: "info", title: "Restore account?", text: `The ban is lifted and the flag score is set to ${sc}, so one more confirmed flag would ban them again.`, confirm: "Restore",
+    rows: [["Account", u.name || u.nickname || u.email]] })) return;
+  b.disabled = true;
+  try { await databases.updateDocument(DATABASE_ID, C.USERS, u.$id, { accountStatus: "", flagged: sc }); toast("Account restored"); loadAttention(); }
+  catch (err) { b.disabled = false; toast(err.message || "Could not restore"); }
+});
+$("v-attention").addEventListener("click", async e => { const b = e.target.closest("[data-act]"); if (!b) return;
+  if (b.dataset.act === "revoke" && !await Modal.confirm({ tone: "bad", title: "Revoke this admin's access?", confirm: "Revoke",
+    rows: [["Admin", b.closest(".row")?.querySelector(".t b")?.textContent]] })) return; b.disabled = true;
+  try { await callFunction(FUNCTIONS.LEDGER_OPS, { action: "set-admin-role", userId: b.dataset.id, decision: b.dataset.act }); toast(b.dataset.act === "approve" ? "Admin approved" : "Admin revoked"); loadAttention(); }
+  catch (err) { b.disabled = false; toast(err.message || "Action failed"); } });
+
+/* support chat */
+async function loadInbox() {
+  const r = await ls(databases, C.SUPPORT_MESSAGES, [Query.orderDesc("$createdAt"), Query.limit(100)]), th = new Map();
+  r.documents.forEach(m => { const t = th.get(m.userId) || { uid: m.userId, last: m, n: 0 }; if (m.senderRole === "user" && !m.read) t.n++; th.set(m.userId, t); });
+  const need = [...th.keys()].slice(0, 100);
+  if (need.length) try { (await ls(databases, C.USERS, [Query.equal("$id", need), Query.limit(100)])).documents.forEach(u => S.name[u.$id] = { n: u.name || u.nickname || u.email, r: u.role, s: u.lastSeenAt }); } catch {}
+  S.rev = new Map(); r.documents.forEach(m => { if (m.senderRole === "user" && String(m.message || "").startsWith("ACCOUNT REVIEW REQUEST") && !S.rev.has(m.userId)) S.rev.set(m.userId, m); }); if (S.bans.length) renderBans();
+  S.threads = [...th.values()]; badge("bSup", S.threads.filter(t => t.n).length);
+  $("inboxList").innerHTML = S.threads.map(t => { const m = t.last, nm = S.name[t.uid]?.n || "User " + t.uid.slice(-5), on = Date.now() - (Date.parse(S.name[t.uid]?.s) || 0) < 90000;
+    return `<button class="row" data-u="${esc(t.uid)}" ><div class="ico${on ? " on" : ""}">${esc(nm.charAt(0).toUpperCase())}</div><div class="t"><b>${esc(nm)}</b><span>${m.senderRole === "owner" ? "You: " : ""}${esc(m.message || "Photo")}</span></div><div class="r"><span>${esc(ago(tsOf(m)))}</span>${t.n ? `<div class="unread">${t.n}</div>` : ""}</div></button>`; }).join("") || '<div class="empty">No conversations yet.</div>';
+}
+async function loadThread() {
+  const uid = S.thread, r = await ls(databases, C.SUPPORT_MESSAGES, [Query.equal("userId", uid), Query.orderDesc("$createdAt"), Query.limit(100)]), ms = r.documents.reverse();
+  if (uid !== S.thread) return;
+  $("msgs").innerHTML = ms.map(m => `<div class="msg ${m.senderRole === "owner" ? "me" : ""}">${m.attachmentUrl ? `<img data-protected-src="${esc(m.attachmentUrl)}" alt="Attachment" class="pm-loading">` : ""}${esc(m.message)}<small>${esc(ago(tsOf(m)))}</small></div>`).join("") || '<div class="empty">No messages yet.</div>';
+  hydrateProtectedMedia($("msgs")); scrollTo({ top: document.body.scrollHeight });
+  if (ms.length && ms[ms.length - 1].senderRole === "user" && P.typing) { P.typing = 0; paintPres(); }   // their message arrived, so they stopped typing
+  const un = ms.filter(m => m.senderRole === "user" && !m.read);
+  if (un.length) { await Promise.allSettled(un.map(m => databases.updateDocument(DATABASE_ID, C.SUPPORT_MESSAGES, m.$id, { read: true }))); loadInbox(); }
+}
+function openThread(uid) {
+  S.thread = uid; BackNav.add("thread", closeThread); const n = S.name[uid]; watchPres(uid);
+  $("thName").textContent = n?.n || "User " + uid.slice(-5); $("thRole").textContent = n?.r || ""; $("inbox").hidden = true; $("thread").hidden = false; $("msgs").innerHTML = SKMSGS; loadThread().catch(e => { if (uid === S.thread) $("msgs").innerHTML = `<div class="empty">${esc(e.message || "Could not load messages.")}</div>`; });
+}
+function closeThread() { if (!S.thread) return; BackNav.remove("thread"); S.thread = null; stopPres(); $("thread").hidden = true; $("inbox").hidden = false; loadInbox(); }
+$("back").addEventListener("click", closeThread);
+$("inboxList").addEventListener("click", e => { const b = e.target.closest("[data-u]"); if (b) openThread(b.dataset.u); });
+$("send").addEventListener("click", async () => { const t = $("reply").value.trim(); if (!t || !S.thread) return; $("send").disabled = true;
+  try { await sendSupportMessage(S.thread, "owner", t); $("reply").value = ""; lastTy = 0; callFunction(FUNCTIONS.LEDGER_OPS, { action: "presence", typing: false, to: S.thread }).catch(() => {}); await loadThread(); } catch (e) { toast(e.message || "Could not send"); } $("send").disabled = false; });
+let rt; try { client.subscribe(`databases.${DATABASE_ID}.collections.${C.SUPPORT_MESSAGES}.documents`, () => { clearTimeout(rt); rt = setTimeout(() => { loadInbox().catch(() => {}); if (S.thread) loadThread().catch(() => {}); }, 400); }); } catch {}
+
+
+
+
+/* presence + typing (the user's side sends a heartbeat and "typing" through ledger-ops "presence") */
+const PRES_MS = 90000, TYP_MS = 6000, P = { seen: 0, typing: 0, sub: null, tick: null };
+function paintPres() {
+  const on = !!P.seen && Date.now() - P.seen < PRES_MS, ty = !!P.typing && Date.now() - P.typing < TYP_MS, t = $("typ"), was = !t.hidden;
+  $("thPres").classList.toggle("on", on);
+  $("thPresTxt").textContent = on ? "Online" : P.seen ? "Last seen " + ago(new Date(P.seen).toISOString()) : "Offline";
+  t.hidden = !ty; if (ty && !was) scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+function setPresFrom(d) { P.seen = Date.parse(d.lastSeenAt) || 0; P.typing = Date.parse(d.typingAt) || 0; paintPres(); }
+function stopPres() { try { P.sub && P.sub(); } catch {} P.sub = null; clearInterval(P.tick); P.seen = P.typing = 0; paintPres(); }
+function watchPres(uid) {
+  stopPres(); paintPres();
+  databases.getDocument(DATABASE_ID, C.USERS, uid).then(d => { if (uid === S.thread) setPresFrom(d); }).catch(() => {});
+  try { P.sub = client.subscribe(`databases.${DATABASE_ID}.collections.${C.USERS}.documents.${uid}`, ev => { if (uid === S.thread && ev.payload) setPresFrom(ev.payload); }); } catch {}
+  P.tick = setInterval(paintPres, 4000);
+}
+let lastTy = 0, tyOff = false;   // support is typing: tell the user (at most every 3s)
+$("reply").addEventListener("input", () => {
+  if (!S.thread || tyOff || !$("reply").value.trim() || Date.now() - lastTy < 3000) return; lastTy = Date.now();
+  callFunction(FUNCTIONS.LEDGER_OPS, { action: "presence", typing: true, to: S.thread }).catch(e => { if (/Unknown action|attributes/.test(e.message || "")) tyOff = true; });
+});
+
+/* image viewer: full screen, pinch / wheel / double tap to zoom, drag to move */
+const Viewer = (() => {
+  const el = $("mv"), st = $("mvStage"), im = $("mvImg"), pts = new Map(); let sc = 1, x = 0, y = 0, d0 = 0, s0 = 1, drag = null, tapAt = 0, tapX = 0, tapY = 0, open = false;
+  const MAX = 6, fit = () => { const mx = Math.max(0, (im.offsetWidth * sc - st.clientWidth) / 2), my = Math.max(0, (im.offsetHeight * sc - st.clientHeight) / 2); x = Math.max(-mx, Math.min(mx, x)); y = Math.max(-my, Math.min(my, y)); };
+  const paint = () => { fit(); im.style.transform = `translate(${x}px,${y}px) scale(${sc})`; $("mvZ").textContent = Math.round(sc * 100) + "%"; $("mvReset").hidden = sc < 1.02; };
+  const zoomAt = (ns, cx, cy) => { ns = Math.max(1, Math.min(MAX, ns)); x = cx - (cx - x) * ns / sc; y = cy - (cy - y) * ns / sc; sc = ns; if (sc === 1) x = y = 0; paint(); };
+  const rel = e => { const r = st.getBoundingClientRect(); return [e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2]; };
+  const reset = () => { sc = 1; x = y = 0; paint(); };
+  function show(src) { if (open) return; open = true; im.src = src; reset(); el.classList.add("on"); el.setAttribute("aria-hidden", "false"); Lock.on(); BackNav.add("viewer", () => hide(true)); }
+  function hide(fromGesture) { if (!open) return; open = false; el.classList.remove("on"); el.setAttribute("aria-hidden", "true"); Lock.off(); if (!fromGesture) BackNav.remove("viewer"); setTimeout(() => { if (!open) im.removeAttribute("src"); }, 260); }
+  st.addEventListener("pointerdown", e => { st.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; d0 = Math.hypot(a.x - b.x, a.y - b.y) || 1; s0 = sc; drag = null; }
+    else { drag = { px: e.clientX, py: e.clientY, x, y }; const now = Date.now();
+      if (now - tapAt < 300 && Math.hypot(e.clientX - tapX, e.clientY - tapY) < 24) { const [cx, cy] = rel(e); zoomAt(sc > 1.05 ? 1 : 2.5, cx, cy); tapAt = 0; } else { tapAt = now; tapX = e.clientX; tapY = e.clientY; } } });
+  st.addEventListener("pointermove", e => { if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2) { const [a, b] = [...pts.values()], r = st.getBoundingClientRect(); zoomAt(s0 * Math.hypot(a.x - b.x, a.y - b.y) / d0, (a.x + b.x) / 2 - r.left - r.width / 2, (a.y + b.y) / 2 - r.top - r.height / 2); }
+    else if (drag && sc > 1) { st.classList.add("drag"); x = drag.x + e.clientX - drag.px; y = drag.y + e.clientY - drag.py; paint(); } });
+  const up = e => { pts.delete(e.pointerId); st.classList.remove("drag"); const r = [...pts.values()][0]; drag = r ? { px: r.x, py: r.y, x, y } : null; };
+  st.addEventListener("pointerup", up); st.addEventListener("pointercancel", up);
+  st.addEventListener("wheel", e => { e.preventDefault(); const [cx, cy] = rel(e); zoomAt(sc * Math.exp(-e.deltaY * 0.002), cx, cy); }, { passive: false });
+  $("mvReset").addEventListener("click", reset); $("mvX").addEventListener("click", () => hide(false));
+  addEventListener("resize", () => open && paint());
+  document.addEventListener("keydown", e => { if (!open) return; if (e.key === "Escape") hide(false); else if (e.key === "+" || e.key === "=") zoomAt(sc * 1.5, 0, 0); else if (e.key === "-") zoomAt(sc / 1.5, 0, 0); });
+  return { show, hide, isOpen: () => open };
+})();
+$("msgs").addEventListener("click", e => { const i = e.target.closest(".msg img"); if (i && i.getAttribute("src") && !i.classList.contains("pm-loading")) Viewer.show(i.src); });
+
+/* write a note to a user (pen on client / earner / admin records) */
+// Goes into the user's support chat as an owner message (send-support-message), so no new function is needed.
+const PEN = '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16.500 4.500a2 2 0 0 1 3 3L8 19z"/><path d="M14 7l3 3"/></svg>';
+const WRITE_ROLES = ["client", "earner", "admin"];
+const TPL = {
+  admin: ["Please give your assigned projects priority today.", "A client is waiting on a response. Please follow up now.", "Please review your pending tasks and approve or reject them."],
+  earner: ["Please follow the task steps carefully.", "Thanks for the good work. Keep it up."],
+  client: ["Your project needs your attention. Please check it.", "Thank you for using BoostGrid."]
+};
+const W = { u: null, item: null, ppl: [], to: -1, busy: false };
+const KIND_NOUN = { projects: "project", tasks: "task" };
+const itemName = d => d.title || d.projectCode || d.taskCode || "";
+/* Who I have written to. Kept on this device: per project/task + person, and per person overall. */
+const WR_K = "ps-wrote";
+const wrLoad = () => { try { const o = JSON.parse(localStorage.getItem(WR_K)); if (o && o.items && o.people) return o; } catch {} return { items: {}, people: {} }; };
+const wrSave = o => { try { const k = Object.keys(o.items); if (k.length > 600) k.sort((a, b) => o.items[a] - o.items[b]).slice(0, k.length - 600).forEach(x => delete o.items[x]); localStorage.setItem(WR_K, JSON.stringify(o)); } catch {} };
+const wrMark = (item, uid) => { const o = wrLoad(), now = Date.now(), p = o.people[uid] || { n: 0 }; if (item) o.items[item.kind + ":" + item.d.$id + ":" + uid] = now; o.people[uid] = { n: p.n + 1, t: now }; wrSave(o); };
+const wroteItem = (kind, id) => { const pre = kind + ":" + id + ":"; return Object.keys(wrLoad().items).some(k => k.startsWith(pre)); };
+const sheet = document.createElement("div"); sheet.className = "sheet-bg"; sheet.setAttribute("aria-hidden", "true");
+sheet.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="wTitle"><div class="grab"></div>
+  <div class="sh-head"><div class="t"><b id="wTitle"></b><span id="wSub"></span></div><button class="sh-x" id="wX" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div id="wForm"><div class="wto" id="wTo" hidden></div><div class="tpls" id="wTpl"></div>
+    <textarea class="field" id="wMsg" rows="5" maxlength="400" placeholder="Write a short note" aria-label="Note"></textarea>
+    <div class="sh-row"><label class="sw"><input type="checkbox" id="wUrg" checked><i></i><span>Urgent</span></label><span class="note" id="wCnt">0 / 400</span></div>
+    <p class="note" id="wHow"></p>
+    <p class="note err" id="wErr" role="alert" hidden></p>
+    <button class="btn pri" id="wSend" type="button" disabled>Send note</button></div>
+  <div id="wDone" class="sh-done" hidden><div class="okring"><svg viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></svg></div><b>Note sent</b><p id="wDoneTxt"></p>
+    <div class="acts2"><button class="btn" id="wChat" type="button">Open chat</button><button class="btn pri" id="wOk" type="button">Done</button></div></div></div>`;
+document.body.appendChild(sheet);
+const wMsg = sheet.querySelector("#wMsg"), wSend = sheet.querySelector("#wSend"), wq = id => sheet.querySelector("#" + id);
+function wSync() { const v = wMsg.value.trim(); wq("wCnt").textContent = wMsg.value.length + " / 400"; wSend.disabled = W.busy || !v || !W.u; }
+const wHow = () => { wq("wHow").textContent = wq("wUrg").checked ? "Urgent: arrives as a notification." : "Not urgent: goes into their support chat."; };
+function wState(p) {
+  if (!p.id) return ["None assigned", ""];
+  const o = wrLoad(), it = W.item && o.items[W.item.kind + ":" + W.item.d.$id + ":" + p.id], pe = o.people[p.id];
+  if (it) return ["Written for this " + KIND_NOUN[W.item.kind] + " · " + ago(new Date(it).toISOString()), "t-good"];
+  if (pe) return ["Messaged " + pe.n + (pe.n === 1 ? " time" : " times") + " before · " + ago(new Date(pe.t).toISOString()), "t-warn"];
+  return ["Not written yet", ""];
+}
+function wChips() {
+  wq("wTo").innerHTML = W.ppl.map((p, i) => { const [t, tn2] = wState(p);
+    return `<button class="wchip ${tn2}" data-i="${i}" type="button" aria-pressed="${i === W.to}" ${p.id ? "" : "disabled"}><div class="wl"><b>${esc(cap(p.role))}</b><span>${esc(p.name || "—")}</span></div><em>${esc(t)}</em></button>`; }).join("");
+}
+function wTpls(role) { wq("wTpl").innerHTML = (TPL[role] || []).map((t, i) => `<button class="tpl" data-t="${i}" type="button">${esc(t)}</button>`).join(""); }
+function wPick(i) { const p = W.ppl[i]; if (!p || !p.id) return; W.to = i; W.u = { $id: p.id, name: p.name, role: p.role }; wTpls(p.role); wChips(); wSync(); }
+// u = a user record (pen on a client / earner / admin), or item = { kind, d, ppl } (pen on a project / task card)
+function openWrite(u, item) {
+  W.item = item || null; W.ppl = item ? item.ppl : []; W.to = -1; W.busy = false; W.u = u || null;
+  wq("wTitle").textContent = item ? "Write about this " + KIND_NOUN[item.kind] : "Write to " + (u.name || u.nickname || u.email || "this user");
+  wq("wSub").textContent = item ? itemName(item.d) : pretty(u.role) + (u.role === "admin" ? " · project handling" : "");
+  wq("wTo").hidden = !item; wMsg.value = ""; wq("wUrg").checked = true; wq("wErr").hidden = true; wSend.textContent = "Send note";
+  wq("wForm").hidden = false; wq("wDone").hidden = true; wq("wTpl").innerHTML = ""; wHow();
+  if (item) { wChips(); const f = W.ppl.findIndex(p => p.id); if (f >= 0) wPick(f); } else wTpls(u.role);
+  wSync();
+  sheet.classList.add("on"); sheet.setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden"; BackNav.add("write", closeWrite);
+  setTimeout(() => wMsg.focus({ preventScroll: true }), 380);
+}
+// project: client + admin. task: client + admin + the earner it is assigned to.
+async function openWriteItem(kind, d) {
+  await fetchNames([d.createdBy, d.adminId, kind === "tasks" ? d.assignedTo : ""]);
+  const nm = (id, fb) => id ? (S.name[id]?.n || fb || "User " + String(id).slice(-5)) : "";
+  const ppl = [{ role: "client", id: d.createdBy, name: nm(d.createdBy, d.createdByName) }, { role: "admin", id: d.adminId, name: nm(d.adminId, d.adminName) }];
+  if (kind === "tasks") ppl.push({ role: "earner", id: d.assignedTo, name: nm(d.assignedTo) });
+  openWrite(null, { kind, d, ppl });
+}
+function closeWrite() { BackNav.remove("write"); sheet.classList.remove("on"); sheet.setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; W.u = null; W.item = null; }
+sheet.addEventListener("click", e => { if (e.target === sheet) closeWrite(); });
+wq("wX").addEventListener("click", closeWrite); wq("wOk").addEventListener("click", closeWrite);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && sheet.classList.contains("on") && !Modal.isOpen()) closeWrite(); });
+wMsg.addEventListener("input", wSync); wq("wUrg").addEventListener("change", wHow);
+wq("wTo").addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b && !b.disabled) wPick(+b.dataset.i); });
+wq("wTpl").addEventListener("click", e => { const b = e.target.closest(".tpl"); if (!b || !W.u) return; wMsg.value = TPL[W.u.role][b.dataset.t]; wSync(); wMsg.focus(); });
+wq("wChat").addEventListener("click", () => { const id = W.u && W.u.$id; closeWrite(); if (id) { setView("support"); openThread(id); } });
+wSend.addEventListener("click", async () => {
+  const u = W.u, body = wMsg.value.trim(); if (!u || !body || W.busy) return;
+  const urgent = wq("wUrg").checked, itm = W.item, who = u.name || u.nickname || u.email || "this user", noun = itm ? KIND_NOUN[itm.kind] : "", about = itm ? itemName(itm.d) || noun : "";
+  if (itm) {   // project / task notes always ask first, and say so when this person was already written to about it
+    const prior = wrLoad().items[itm.kind + ":" + itm.d.$id + ":" + u.$id];
+    if (!await Modal.confirm({ tone: "warn", title: `Send to ${who}?`, text: prior ? `You already wrote to ${who} about this ${noun} on ${fmtDate(prior)}. Send another?` : "It can't be recalled.", quote: body, confirm: "Send",
+      rows: [["About", cap(noun) + ": " + about], ["To", cap(u.role) + " · " + who], ["Goes as", urgent ? "Notification" : "Support chat"]] })) return;
+  }
+  W.busy = true; wSend.disabled = true; wSend.textContent = "Sending…"; wq("wErr").hidden = true;
+  try {
+    if (urgent) await callFunction(FUNCTIONS.LEDGER_OPS, { action: "announce-user", userId: u.$id, kind: "dn", ...(itm ? { title: (cap(noun) + ": " + about).slice(0, 60) } : { noTitle: true }), message: body });   // urgent = a DN, with no "Urgent:" in the text
+    else await sendSupportMessage(u.$id, "owner", itm ? `About ${noun} "${about}":\n${body}` : body);
+    wrMark(itm, u.$id);
+    wq("wDoneTxt").textContent = urgent ? `Sent to ${who} as a notification.` : `It is in ${who}'s support chat.`;
+    wq("wChat").hidden = urgent; wq("wForm").hidden = true; wq("wDone").hidden = false; if (!urgent) loadInbox().catch(() => {});
+  } catch (err) { wq("wErr").textContent = err.message || "Could not send. Try again."; wq("wErr").hidden = false; wSend.textContent = "Send note"; }
+  W.busy = false; wSync();
+});
+
+/* announcement */
+$("aud").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.aud = b.dataset.a; document.querySelectorAll("#aud button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("annUser").hidden = S.aud !== "user"; if (S.aud === "user") { renderAu(); if (!S.auPick) loadAu(S.auCat); } });
+/* three sub tabs: Notify (dn, direct notification), Announcement, Promotion */
+const KIND = {
+  dn: { def: "Notification", btn: "Send notification", noun: "Notification" },
+  announcement: { def: "Announcement", btn: "Send announcement", noun: "Announcement", row: "You have an announcement to read. Click to read." },
+  promotion: { def: "Promotion", btn: "Send promotion", noun: "Promotion", row: "There are system promotions for you, click to view." }
+};
+Object.assign(S, { annMode: "dn", annDraft: {} });
+function annPreview() {
+  const m = S.annMode, k = KIND[m], msg = $("annMsg").value.trim() || "Your message appears here", t = m === "dn" ? $("annTitle").value.trim() : k.def;
+  $("annCount").textContent = $("annMsg").value.length + " / 400";
+  $("annPrevT").textContent = t; $("annPrevT").style.display = t ? "" : "none"; $("annPrev").textContent = msg;
+}
+function setAnnMode(m) {
+  S.annDraft[S.annMode] = { t: $("annTitle").value, m: $("annMsg").value };
+  S.annMode = m; const k = KIND[m], d = S.annDraft[m] || { t: "", m: "" }, dn = m === "dn";
+  $("annTitle").value = d.t; $("annMsg").value = d.m;
+  document.querySelectorAll("#annMode button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === m));
+  $("annSend").textContent = k.btn;
+  $("audUser").style.display = dn ? "" : "none";   // only a DN can go to one user
+  $("annTitle").placeholder = dn ? "Title (optional)" : "Title (optional, e.g. Platform update)";   // every kind has a title; the kind itself shows as the small type line
+  if (!dn && S.aud === "user") { S.aud = "all"; document.querySelectorAll("#aud button").forEach(x => x.setAttribute("aria-pressed", x.dataset.a === "all")); $("annUser").hidden = true; }
+  annPreview();
+}
+$("annMode").addEventListener("click", e => { const b = e.target.closest("button"); if (b && b.dataset.m !== S.annMode) setAnnMode(b.dataset.m); });
+$("annMsg").addEventListener("input", annPreview);
+$("annTitle").addEventListener("input", annPreview);
+setAnnMode("dn");
+
+/* send to one user: pick a category, search inside it, tap a person */
+Object.assign(S, { auCat: "client", auList: {}, auPick: null, auSeq: 0 });
+const auName = u => u.name || u.nickname || u.email || u.$id;
+function renderAu() {
+  const p = S.auPick; $("auPickBox").hidden = !p; $("auFind").hidden = !!p;
+  if (p) { $("auPickBox").innerHTML = `<div class="list"><div class="row"><div class="ico">${esc((auName(p)[0] || "?").toUpperCase())}</div><div class="t"><b>${esc(auName(p))}</b><span>${esc([pretty(p.role || ""), p.email].filter(Boolean).join(" · "))}</span></div><div class="r"><button class="btn ghost" id="auChange" type="button">Change</button></div></div></div>`; return; }
+  const all = S.auList[S.auCat]; if (!all) return;
+  const q = $("auSearch").value.trim().toLowerCase(), hit = all.filter(u => !q || [u.name, u.nickname, u.email, u.$id].some(v => String(v || "").toLowerCase().includes(q)));
+  $("auList").innerHTML = hit.slice(0, 8).map(u => `<button class="row tap" data-u="${esc(u.$id)}" type="button"><div class="ico">${esc((auName(u)[0] || "?").toUpperCase())}</div><div class="t"><b>${esc(auName(u))}</b><span>${esc(u.email || "")}</span></div></button>`).join("")
+    + (hit.length > 8 ? `<div class="empty">${(hit.length - 8).toLocaleString()} more. Keep typing to narrow.</div>` : "")
+    || `<div class="empty">${all.length ? "No match" : "No " + S.auCat + "s yet"}</div>`;
+}
+async function loadAu(cat) {
+  if (S.auList[cat]) return renderAu();
+  const seq = ++S.auSeq; $("auList").innerHTML = '<div class="empty">Loading…</div>';
+  try { const out = []; let cur = null;
+    for (let i = 0; i < 20; i++) { const q = [Query.equal("role", cat), Query.orderDesc("$createdAt"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.USERS, q); out.push(...r.documents); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    S.auList[cat] = out;
+  } catch (e) { if (seq === S.auSeq) $("auList").innerHTML = `<div class="empty">${esc(e.message || "Could not read users")}</div>`; return; }
+  if (seq === S.auSeq) renderAu();
+}
+$("auCat").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.auCat = b.dataset.c; document.querySelectorAll("#auCat button").forEach(x => x.setAttribute("aria-pressed", x === b)); $("auSearch").value = ""; loadAu(S.auCat); });
+$("auSearch").addEventListener("input", renderAu);
+$("auList").addEventListener("click", e => { const b = e.target.closest("[data-u]"); if (!b) return; S.auPick = (S.auList[S.auCat] || []).find(u => u.$id === b.dataset.u) || null; renderAu(); });
+$("auPickBox").addEventListener("click", e => { if (!e.target.closest("#auChange")) return; S.auPick = null; $("auSearch").value = ""; renderAu(); loadAu(S.auCat); });
+
+$("annSend").addEventListener("click", async () => {
+  const m = S.annMode, k = KIND[m], rawTitle = $("annTitle").value.trim(), title = m === "dn" ? rawTitle : (rawTitle || k.def),
+    message = $("annMsg").value.trim(), one = m === "dn" && S.aud === "user", user = one ? S.auPick : null,
+    who = one ? (user ? auName(user) : "") : { all: "everyone", client: "all clients", earner: "all earners" }[S.aud], act = one ? "announce-user" : "announce", mail = $("annEmail").checked,
+    meta = { kind: m, title: rawTitle, noTitle: m === "dn" && !rawTitle };
+  if (one && !user) return toast("Pick a user first");
+  if (!message) return toast("Write a message first"); if (!await Modal.confirm({ tone: "warn", title: `Send to ${who}?`, text: mail ? "Also sent to their email. It can't be recalled." : "It can't be recalled.", quote: (title ? title + "\n" : "") + message, confirm: "Send" })) return;
+  $("annSend").disabled = true; let cursor = null, sent = 0, emailed = 0, mailErr = "", mailOn = mail;
+  try { for (let i = 0; i < 200; i++) { const r = await callFunction(FUNCTIONS.LEDGER_OPS, one ? { action: act, userId: user.$id, ...meta, message, email: mailOn } : { action: act, audience: S.aud, ...meta, message, cursor, email: mailOn }); sent += r.sent == null ? 1 : r.sent; emailed += r.emailed || 0; if (r.emailError) { mailErr = r.emailError; mailOn = false; } $("annStatus").textContent = `Sending… ${sent} so far`; if (one || r.done) break; cursor = r.cursor; }
+    $("annStatus").textContent = (one ? `Sent to ${who}.` : `Sent to ${sent} user${sent === 1 ? "" : "s"}.`) + (mail ? (mailErr ? ` Email failed${emailed ? " after " + emailed : ""}: ${mailErr}` : ` Emailed ${emailed}.`) : ""); $("annMsg").value = ""; $("annTitle").value = ""; $("annMsg").dispatchEvent(new Event("input")); $("annTitle").dispatchEvent(new Event("input")); toast(k.noun + " sent");
+  } catch (e) { $("annStatus").textContent = /Unknown action/.test(e.message) ? `The ${act} action isn't in ledger-ops yet. Add it and redeploy.` : (sent ? `Stopped after ${sent}: ` : "") + e.message; }
+  $("annSend").disabled = false; });
+
+/* boot */
+async function load() {
+  renderCash();
+  setSync("busy", "Syncing"); const slow = setTimeout(() => { if ($("sync").classList.contains("busy")) setSync("busy", "Slow connection, still trying"); }, 12000);
+  const ovDone = () => { $("ovSk").hidden = true; $("ovReal").hidden = false; };
+  const r = await Promise.allSettled([loadOverview().finally(ovDone), loadDeposits(), loadProjectTotals(), loadAttention(), loadInbox(), S.view === "database" ? loadDb(true) : 0, loadWithdrawn(), loadClientBal()]);
+  if (r[0].status === "rejected") $("actList").innerHTML = `<div class="empty">${esc(r[0].reason.message || "Could not load revenue.")}</div>`;
+  if (r[0].status === "rejected" && S.fees === undefined) { S.fees = false; renderCash(); }
+  if (r[0].status === "rejected") { $("total").textContent = "—"; $("delta").textContent = "—"; $("fProj").textContent = $("fWd").textContent = "—"; }
+  if (r[3].status === "rejected" && !S.thread) $("inboxList").innerHTML = `<div class="empty">${esc(r[3].reason?.message || "Could not load conversations.")}</div>`;
+  clearTimeout(slow);
+  const bad = r.some(x => x.status === "rejected"), off = bad && !navigator.onLine;
+  setSync(bad ? "err" : "", off ? "Offline. Tap to retry" : bad ? "Partly synced. Tap to retry" : "Synced just now");
+  if (off) { $("offTxt").textContent = "You're offline. Showing what was loaded."; $("off").hidden = false; } else if (!bad) $("off").hidden = true;
+}
+/* boot: a slow or missing connection shows a retry screen, never the login page */
+let booting = false, wired = false;
+const withTimeout = (p, ms = 10000) => new Promise((res, rej) => { const t = setTimeout(() => rej(Object.assign(new Error("Timed out"), { offline: true })), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); });
+// uses requireSessionOrRetry from appwrite-config.js when present; until then a stand-in stops at the retry screen
+// when offline
+const requireSessionOrRetry = AW.requireSessionOrRetry || (url => !navigator.onLine ? Promise.reject(Object.assign(new Error("You're offline."), { offline: true })) : requireSession(url));
+function netFail(msg) {
+  booting = false; $("net").hidden = false; $("netMsg").textContent = msg || "Check your connection, then try again.";
+  $("netRetry").disabled = false; $("netRetry").textContent = "Try again"; $("netAuto").textContent = prefAuto() ? "We'll retry by ourselves when you're back online." : "";
+  setSync("err", "Offline. Tap to retry");
+}
+$("netRetry").addEventListener("click", () => { $("netRetry").disabled = true; $("netRetry").textContent = "Trying…"; boot(); });
+$("offRetry").addEventListener("click", () => { if (navigator.onLine) { $("off").hidden = true; load(); } else toast("Still offline"); });
+addEventListener("offline", () => { if (!$("net").hidden) return; $("offTxt").textContent = "You're offline. Showing what was loaded."; $("off").hidden = false; });
+addEventListener("online", () => { $("off").hidden = true; if (!prefAuto()) return; if (!$("net").hidden) boot(); else if (S.me) load(); });
+async function boot() {
+  if (booting) return; booting = true; setSync("busy", "Syncing");
+  let user; try { user = await requireSessionOrRetry("login.html?redirect=platform-space.html"); } catch (e) { return netFail(e.message); }
+  if (!user) return;
+  let me; try { me = await withTimeout(getUserProfile(user.$id)); }
+  catch (e) { if (e && e.code === 404) { location.replace("no_access.html"); return; } if (e && e.code === 401) { location.href = "login.html?redirect=platform-space.html"; return; } return netFail(); }
+  if (me.role !== "owner") { location.replace("no_access.html"); return; }
+  S.me = me;
+  // Role says owner: now ask the server whether ownership is actually verified (allow-listed + verified email).
+  try { S.pre = (await withTimeout(callFunction(FUNCTIONS.LEDGER_OPS, { action: "list-admins" }))).admins; }
+  catch (e) { if (/owner only/i.test(e.message || "")) { location.replace("claim-owner.html"); return; } if (e.offline || !navigator.onLine || /fetch|network/i.test(e.message || "")) return netFail(); }
+  $("net").hidden = true; booting = false;
+  const nm = (me.nickname || me.name || "Owner").split(" ")[0], h = new Date().getHours();
+  greet = (h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening") + ", " + nm;
+  if (!wired) { wired = true; $("sync").addEventListener("click", load); }
+  let v = "overview"; try { v = sessionStorage.getItem("ps-view") || v; } catch {} setView(TITLES[v] !== undefined ? v : "overview"); load();
+}
+boot();
+</script>
+</body>
+</html>
