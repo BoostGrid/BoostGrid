@@ -1,0 +1,79 @@
+/* BoostGrid theme: design tokens (colours, radii, shadows, motion) for light and dark mode, plus the switch;
+   dark mode = `dark` class on <body>; load first */
+
+:root{
+  --brand:#00cc88;
+  --brand-deep:#00a873;
+  --brand-soft:#e6faf2;
+  --bg:#f6fbf8;
+  --surface:#ffffff;
+  --surface-2:#f0f9f5;
+  --text:#0d1f17;
+  --text-dim:#5b7268;
+  --border:#dceee5;
+  --border-strong:#c3e6d7;
+  --danger:#e8546a;
+  --shadow: 0 1px 2px rgba(13,31,23,.04), 0 8px 24px rgba(13,31,23,.06);
+  --radius-lg:22px;
+  --radius-md:16px;
+  --radius-sm:12px;
+  --spring: cubic-bezier(.34,1.56,.64,1);
+  --ease: cubic-bezier(.22,.9,.32,1);
+}
+
+body.dark{
+  --brand:#00e6a0;
+  --brand-deep:#00cc88;
+  --brand-soft:#0e2a20;
+  --bg:#05100c;
+  --surface:#0e1f17;
+  --surface-2:#122619;
+  --text:#eafff4;
+  --text-dim:#87a89a;
+  --border:#183226;
+  --border-strong:#1f4432;
+  --danger:#ff6b81;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px rgba(0,0,0,.35);
+}
+
+.theme-toggle{
+  position:relative;
+  width:52px; height:30px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  cursor:pointer;
+  padding:0;
+  transition:background .3s var(--ease), border-color .3s var(--ease);
+}
+
+.theme-toggle .knob{
+  position:absolute;
+  top:2px; left:2px;
+  width:24px; height:24px;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--brand), var(--brand-deep));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+  transition:transform .4s var(--spring);
+}
+
+body.dark .theme-toggle .knob{
+  transform:translateX(22px);
+}
+
+.theme-toggle .knob svg{
+  width:13px; height:13px;
+  stroke:#04140d;
+  fill:none;
+  stroke-width:2.2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.theme-toggle:active .knob{
+  transform:scale(.88);
+}
+body.dark .theme-toggle:active .knob{
+  transform:translateX(22px) scale(.88);
+}
