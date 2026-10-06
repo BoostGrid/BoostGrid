@@ -1693,8 +1693,8 @@ async function boot() {
 /* ---- promo project: owner-only, no fee. Debits users.balance (write-up) via ledger-ops create-promo; never touches platform_revenue ---- */
 const PR = { title: "", plat: "", pdesc: "", desc: "", link: "", reward: "", eng: "", admin: null, adm: null, shots: [], files: [], top: "", busy: false, open: "", bad: {} };
 const PM = { ok: null, busy: false, open: false, n: 0, worth: 0, approved: 0, joinN: 0, mileN: 0 };   // promo calculations, read-only figures (nothing here is stored)
-const PR_REFEREE = 100, PR_MILESTONE = 500, PR_CAP = 500000;   // mirror REFEREE_REWARD, MILESTONE_REWARD and PROMO_BALANCE_CAP in ledger-ops
-const PR_TOP = [1000,2000,5000,10000,20000,50000,100000,200000,500000];
+const PR_REFEREE = 100, PR_MILESTONE = 500, PR_CAP = 100000;   // mirror REFEREE_REWARD, MILESTONE_REWARD and PROMO_BALANCE_CAP in ledger-ops
+const PR_TOP = [1000,2000,5000,10000,20000,50000,100000];
 const bal = () => Number(S.me && S.me.balance) || 0;
 const prReset = () => Object.assign(PR, { title: "", plat: "", pdesc: "", desc: "", link: "", reward: "", eng: "", admin: null, shots: [], files: [], open: "", bad: {}, busy: false });
 /* what you owe earners from your own wallet = promo tasks admins approved + referral joining rewards + referral milestone rewards.
@@ -1743,7 +1743,13 @@ function promoCalcView() { return {
   },
   click(e) { if (e.target.closest('[data-pc="retry"]')) { PM.ok = null; Panel.refresh(); loadPromoCalc(); } }
 }; }
-const PR_PLAT = ["Facebook","Instagram","WhatsApp","TikTok","Snapchat","Threads","LinkedIn","YouTube","Telegram","X (Twitter)","Other","None"];
+// value = the same key the client dashboard stores (what earner-dashboard matches on); label = what is shown
+const PR_PLAT = [
+  { v: "facebook", l: "Facebook" }, { v: "instagram", l: "Instagram" }, { v: "whatsapp", l: "WhatsApp" },
+  { v: "tiktok", l: "TikTok" }, { v: "snapchat", l: "Snapchat" }, { v: "threads", l: "Threads" },
+  { v: "linkedin", l: "LinkedIn" }, { v: "youtube", l: "YouTube" }, { v: "telegram", l: "Telegram" },
+  { v: "twitter", l: "Twitter / X" }, { v: "other", l: "Other (custom task)" }, { v: "none", l: "No platform required" }
+];
 const PR_REW = [50,100,200,300,400,500], PR_ENG = [10,20,40,50,70,100,150,200,250,350,400,500,600,700,800,900,1000,1500,2000,2500,3000,4000,5000,6000,7000,8000,9000,10000];
 const prCh = '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
 const prSteps = n => `<div class="pr-steps"><div class="pr-step ${n === 1 ? "on" : "done"}"><i>1</i>Details</div><div class="pr-bar ${n === 2 ? "fill" : ""}"></div><div class="pr-step ${n === 2 ? "on" : ""}"><i>2</i>Submit</div></div>`;
@@ -1754,8 +1760,8 @@ function prDetails(b) {
   const B = k => PR.bad[k] ? "bad" : "";
   b.innerHTML = prSteps(1) + `<div class="pr-h"><b>Promo details</b><span>Tell earners exactly what to do.</span></div><div class="pr-card">
   <div class="pr-f"><label for="prT">Task title</label><input class="field ${B("title")}" id="prT" data-prf="title" maxlength="80" autocomplete="off" value="${esc(PR.title)}">${prMsg("title", "Task title is required.")}</div>
-  <div class="pr-f"><label>Required platform</label>${prDd("plat", "Select a platform", PR_PLAT.map(p => ({ v: p, l: p })), PR.plat, PR.bad.plat)}${prMsg("plat", "Please select a platform.")}</div>
-  ${PR.plat === "Other" ? `<div class="pr-f"><label for="prPd">Describe what earners need to submit</label><textarea class="field ${B("pdesc")}" id="prPd" data-prf="pdesc" rows="3" placeholder="e.g. Get an account on the app and submit your username">${esc(PR.pdesc)}</textarea>${prMsg("pdesc", "Please describe what earners need to submit.")}</div>` : ""}
+  <div class="pr-f"><label>Required platform</label>${prDd("plat", "Select a platform", PR_PLAT, PR.plat, PR.bad.plat)}${prMsg("plat", "Please select a platform.")}</div>
+  ${PR.plat === "other" ? `<div class="pr-f"><label for="prPd">Describe what earners need to submit</label><textarea class="field ${B("pdesc")}" id="prPd" data-prf="pdesc" rows="3" placeholder="e.g. Get an account on the app and submit your username">${esc(PR.pdesc)}</textarea>${prMsg("pdesc", "Please describe what earners need to submit.")}</div>` : ""}
   <div class="pr-f"><label for="prD">Description</label><textarea class="field ${B("desc")}" id="prD" data-prf="desc" placeholder="Tell engagers exactly what to do">${esc(PR.desc)}</textarea>${prMsg("desc", "Description is required.")}</div>
   <div class="pr-f"><label for="prL">Link to the post / page</label><input class="field ${B("link")}" id="prL" data-prf="link" inputmode="url" placeholder="https://" autocomplete="off" value="${esc(PR.link)}">${prMsg("link", "Must start with https://")}</div></div>
   <div class="pr-act"><button class="btn pri" type="button" data-pr="next">Continue</button><p class="pr-note">Reward, engagements and the promo balance are set on the next step.</p></div>`;
@@ -1788,7 +1794,7 @@ function prClick(e) {
   else if (a === "admbtn") { PR.open = PR.open === "adm" ? "" : "adm"; if (PR.open && PR.adm === null) prLoadAdmins(); Panel.refresh(); }
   else if (a === "adm") { PR.admin = { id: b.dataset.id, name: b.dataset.n }; PR.open = ""; Panel.refresh(); }
   else if (a === "next") {
-    PR.bad = {}; if (!PR.title.trim()) PR.bad.title = 1; if (!PR.plat) PR.bad.plat = 1; if (PR.plat === "Other" && !PR.pdesc.trim()) PR.bad.pdesc = 1;
+    PR.bad = {}; if (!PR.title.trim()) PR.bad.title = 1; if (!PR.plat) PR.bad.plat = 1; if (PR.plat === "other" && !PR.pdesc.trim()) PR.bad.pdesc = 1;
     if (!PR.desc.trim()) PR.bad.desc = 1; if (!/^https:\/\/\S+/i.test(PR.link.trim())) PR.bad.link = 1;
     if (Object.keys(PR.bad).length) { Panel.refresh(); return; } PR.open = ""; Panel.open(prV2);
   }
