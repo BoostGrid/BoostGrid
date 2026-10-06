@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apply as admin · BoostGrid</title>
+<meta name="description" content="Apply to become a BoostGrid admin. Applications are reviewed and approved by the platform owner.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://boostgrid.github.io/BoostGrid/admin-apply.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BoostGrid">
+<meta property="og:title" content="Apply to be a BoostGrid admin">
+<meta property="og:description" content="Apply to become a BoostGrid admin. Applications are reviewed and approved by the platform owner.">
+<meta property="og:url" content="https://boostgrid.github.io/BoostGrid/admin-apply.html">
+<meta property="og:image" content="https://boostgrid.github.io/BoostGrid/assets/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BoostGrid — earn from social tasks, grow your reach">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Apply to be a BoostGrid admin">
+<meta name="twitter:description" content="Apply to become a BoostGrid admin. Applications are reviewed and approved by the platform owner.">
+<meta name="twitter:image" content="https://boostgrid.github.io/BoostGrid/assets/og-image.png">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#05100c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+<style>
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ margin:0; min-height:100%; }
+body{
+  min-height:100dvh; background:var(--bg); color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  transition:background .35s var(--ease), color .35s var(--ease);
+  background:
+    radial-gradient(120% 55% at 50% 0%, var(--brand-soft) 0%, transparent 60%),
+    var(--bg);
+}
+h1,h2{ font-family:'Sora',system-ui,sans-serif; letter-spacing:-.02em; margin:0; }
+
+.page{ width:100%; max-width:440px; margin:0 auto; padding:calc(18px + env(safe-area-inset-top,0px)) 22px calc(28px + env(safe-area-inset-bottom,0px) + var(--kb,0px)); min-height:100dvh; display:flex; flex-direction:column; }
+
+.top{ display:flex; align-items:center; justify-content:space-between; }
+.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+.brand .wm{ height:30px; width:auto; display:block; }
+.brand span{ font:700 16px 'Sora',system-ui,sans-serif; letter-spacing:-.02em; }
+
+.head{ margin:26px 0 6px; }
+.head h1{ font-size:24px; line-height:1.2; }
+.head p{ margin:8px 0 0; font-size:13.5px; line-height:1.5; color:var(--text-dim); }
+.prog{ position:relative; height:4px; margin:20px 0 6px; border-radius:99px; background:var(--border); overflow:hidden; }
+.prog i{ position:absolute; inset:0 auto 0 0; width:0; border-radius:99px; background:linear-gradient(90deg,var(--brand),var(--brand-deep)); transition:width .5s var(--ease); }
+.prog-lbl{ min-height:16px; margin:0; font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); }
+
+/* answered list (the filled inputs stack up here) */
+.answers{ margin-top:14px; }
+.ans{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .45s var(--ease); }
+.ans.in{ grid-template-rows:1fr; }
+.ans.out{ grid-template-rows:0fr; }
+.ans-clip{ overflow:hidden; min-height:0; }
+.ans-row{
+  display:flex; align-items:center; gap:12px; width:100%; margin:0 0 8px; padding:10px 14px;
+  text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow);
+  transition:border-color .2s var(--ease), transform .2s var(--spring);
+}
+.ans-row:active{ transform:scale(.985); }
+.ans-row:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.ans-ck{ flex:0 0 auto; width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:var(--brand-soft); color:var(--brand-deep); }
+body.dark .ans-ck{ color:var(--brand); }
+.ans-ck svg{ width:12px; height:12px; fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+.ans-tx{ flex:1 1 auto; min-width:0; }
+.ans-tx small{ display:block; font-size:10.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+.ans-tx b{ display:block; margin-top:1px; font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ans-ed{ flex:0 0 auto; width:15px; height:15px; fill:none; stroke:var(--text-dim); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* stage: the active input slides in from the right */
+.stage{ position:relative; overflow:hidden; margin:6px -6px 0; padding:8px 6px 4px; }
+.step{ will-change:transform,opacity; }
+.step h2{ font-size:19px; line-height:1.3; margin:14px 0 0; }
+.step .sub{ margin:6px 0 0; font-size:13px; line-height:1.5; color:var(--text-dim); }
+
+/* withdrawal-style underline field: label rests inside, floats on focus / when filled */
+.wd-f{ position:relative; margin:30px 4px 10px; }
+.wd-f input{
+  display:block; width:100%; height:56px; padding:24px 44px 6px 0;
+  font:500 17px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:var(--text);
+  background:transparent; border:0; border-bottom:1px solid var(--border-strong); border-radius:0;
+  outline:none; -webkit-appearance:none; appearance:none; transition:border-color .25s var(--ease);
+}
+.wd-f input::placeholder{ color:transparent; transition:color .25s var(--ease); }
+.wd-f input:focus::placeholder{ color:color-mix(in srgb, var(--text-dim) 65%, transparent); }
+.wd-f input:-webkit-autofill{ -webkit-text-fill-color:var(--text); transition:background-color 9999s ease-out 0s; }
+.wd-f label{
+  position:absolute; left:0; top:18px; line-height:20px; font-size:14px; font-weight:500; color:var(--text-dim);
+  transform-origin:left top; pointer-events:none; transition:transform .32s var(--ease), color .2s var(--ease);
+}
+.wd-f input:focus ~ label,
+.wd-f input:not(:placeholder-shown) ~ label{ transform:translateY(-19px) scale(.8); }
+.wd-f input:focus ~ label{ color:var(--brand-deep); }
+body.dark .wd-f input:focus ~ label{ color:var(--brand); }
+.wd-f::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:1px; background:var(--brand); transform:scaleX(0); transform-origin:left; transition:transform .4s var(--ease); pointer-events:none; }
+.wd-f:focus-within::after{ transform:scaleX(1); }
+.wd-f input.invalid{ border-bottom-color:var(--danger); }
+.wd-f input.invalid ~ label{ color:var(--danger); }
+.wd-f:has(input.invalid)::after{ background:var(--danger); transform:scaleX(1); }
+.eye{ position:absolute; right:-6px; bottom:8px; width:38px; height:38px; display:grid; place-items:center; border:0; background:transparent; cursor:pointer; color:var(--text-dim); border-radius:50%; }
+.eye:focus-visible{ outline:2px solid var(--brand); }
+.eye svg{ width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+.vf{ display:flex; justify-content:space-between; gap:10px; margin:0 4px; min-height:20px; font-size:12.5px; font-weight:600; line-height:1.4; color:var(--text-dim); }
+.vf.ok{ color:var(--brand-deep); } body.dark .vf.ok{ color:var(--brand); }
+.vf.err{ color:var(--danger); }
+.vf a{ color:inherit; text-decoration:underline; }
+.vf .cnt{ flex:0 0 auto; font-variant-numeric:tabular-nums; font-weight:500; color:var(--text-dim); }
+
+.meter{ display:flex; gap:5px; margin:12px 4px 0; }
+.meter i{ flex:1; height:4px; border-radius:99px; background:var(--border); transition:background .3s var(--ease); }
+.meter[data-s="1"] i:nth-child(-n+1),
+.meter[data-s="2"] i:nth-child(-n+2){ background:#ef4444; }   /* 1-2 checks: red */
+.meter[data-s="3"] i:nth-child(-n+3){ background:#f97316; }   /* 3 checks: orange */
+.meter[data-s="4"] i:nth-child(-n+4){ background:#facc15; }   /* 4 checks: yellow */
+.meter[data-s="5"] i{ background:#22c55e; }                   /* all 5: green */
+.rules{ margin:10px 4px 0; padding:0; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:12px; color:var(--text-dim); }
+.rules li{ display:flex; align-items:center; gap:6px; transition:color .2s var(--ease); }
+.rules li::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--border-strong); transition:background .2s var(--ease); }
+.rules li.ok{ color:var(--text); } .rules li.ok::before{ background:var(--brand); }
+
+/* role chooser */
+.roles{ display:grid; gap:12px; margin-top:18px; }
+.role{
+  display:flex; align-items:center; gap:14px; width:100%; padding:16px; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius-md); box-shadow:var(--shadow);
+  transition:border-color .2s var(--ease), transform .25s var(--spring), background .2s var(--ease);
+}
+.role:hover{ border-color:var(--border-strong); }
+.role:active{ transform:scale(.975); }
+.role:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.role.sel{ border-color:var(--brand); background:var(--brand-soft); }
+.role-ico{ flex:0 0 auto; width:44px; height:44px; display:grid; place-items:center; border-radius:14px; background:var(--brand-soft); color:var(--brand-deep); }
+body.dark .role-ico{ color:var(--brand); }
+.role.sel .role-ico{ background:var(--surface); }
+.role-ico svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.role b{ display:block; font:700 15px 'Sora',system-ui,sans-serif; letter-spacing:-.01em; }
+.role span{ display:block; margin-top:3px; font-size:12.5px; line-height:1.45; color:var(--text-dim); }
+.role .role-ico{ display:grid; place-items:center; margin:0; font-size:0; line-height:0; color:var(--brand-deep); }
+body.dark .role .role-ico{ color:var(--brand); }
+.role .role-ico svg{ display:block; margin:0; }
+
+/* button + footer */
+.agree{ display:flex; align-items:flex-start; gap:10px; margin:18px 2px 0; font-size:12.5px; line-height:1.5; color:var(--text-dim); cursor:pointer; }
+.agree[hidden]{ display:none; }
+.agree input{ -webkit-appearance:none; appearance:none; flex:0 0 auto; width:20px; height:20px; margin:1px 0 0; display:grid; place-items:center; cursor:pointer;
+  border:1.5px solid var(--border-strong); border-radius:6px; background:var(--surface); transition:background .2s var(--ease), border-color .2s var(--ease); }
+.agree input:checked{ background:linear-gradient(135deg,var(--brand),var(--brand-deep)); border-color:transparent; }
+.agree input:checked::after{ content:""; width:10px; height:5px; margin-top:-2px; border-left:2.5px solid #04140d; border-bottom:2.5px solid #04140d; transform:rotate(-45deg); }
+.agree input:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.agree a{ color:var(--brand-deep); font-weight:600; text-decoration:underline; }
+body.dark .agree a{ color:var(--brand); }
+.agree.bad input{ border-color:var(--danger); }
+.go{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:54px; margin-top:22px;
+  border:0; border-radius:var(--radius-sm); cursor:pointer; font:700 15px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:#04140d;
+  background:linear-gradient(135deg,var(--brand),var(--brand-deep)); box-shadow:0 8px 20px color-mix(in srgb, var(--brand) 32%, transparent);
+  transition:transform .2s var(--spring), opacity .2s var(--ease), box-shadow .2s var(--ease);
+}
+.go:active:not(:disabled){ transform:scale(.97); }
+.go:disabled{ opacity:.55; cursor:not-allowed; box-shadow:none; }
+.go:focus-visible{ outline:2px solid var(--brand); outline-offset:3px; }
+.go svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+.go[hidden]{ display:none; }
+.spin{ width:18px; height:18px; border:2.5px solid rgba(4,20,13,.25); border-top-color:#04140d; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.foot{ margin:auto 0 0; padding-top:22px; text-align:center; font-size:13.5px; color:var(--text-dim); }
+.foot a{ color:var(--brand-deep); font-weight:600; text-decoration:none; margin-left:4px; }
+body.dark .foot a{ color:var(--brand); }
+.foot a:hover{ text-decoration:underline; }
+.formerr{ margin:14px 4px 0; font-size:13px; line-height:1.45; font-weight:600; color:var(--danger); text-align:center; }
+.formerr:empty{ display:none; }
+.formerr a{ color:inherit; text-decoration:underline; }
+
+/* verification modal */
+.overlay{ position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(5,16,12,.6); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
+.overlay.show{ display:flex; animation:fade .2s ease both; }
+.modal{ width:100%; max-width:360px; padding:28px 22px 22px; text-align:center; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:0 20px 60px rgba(0,0,0,.35); animation:pop .35s var(--spring) both; }
+.mico{ width:60px; height:60px; margin:0 auto 14px; display:grid; place-items:center; border-radius:50%; background:var(--brand-soft); color:var(--brand-deep); }
+body.dark .mico{ color:var(--brand); }
+.mico svg{ width:30px; height:30px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.modal h3{ margin:0 0 8px; font:700 18px 'Sora',system-ui,sans-serif; letter-spacing:-.02em; }
+.modal p{ margin:0; font-size:13.5px; line-height:1.55; color:var(--text-dim); overflow-wrap:anywhere; }
+.modal p b{ color:var(--text); font-weight:600; }
+.modal .go{ margin-top:22px; }
+@keyframes fade{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes pop{ from{ opacity:0; transform:scale(.9) translateY(8px) } to{ opacity:1; transform:none } }
+
+@media (prefers-reduced-motion:reduce){
+  .ans{ transition:none; } .prog i{ transition:none; } .overlay.show,.modal{ animation:none; }
+}
+  .wm{--wm-b1:#0d1f17;--wm-b2:#1f6b50;--wm-g1:#00cc88;--wm-g2:#00a873;--wm-g3:#008a5e;--wm-u:#00a873;--wm-flame:#ff9a3c;--wm-hi:#ffffff;--wm-core:#0d1f17;} body.dark .wm{--wm-b1:#ffffff;--wm-b2:#b6ffe2;--wm-g1:#7dffd0;--wm-g2:#00e6a0;--wm-g3:#00b880;--wm-u:#00e6a0;--wm-flame:#ffb86b;--wm-hi:#ffffff;--wm-core:#04100b;} .wm .wm-glow{filter:none} body.dark .wm .wm-glow{filter:url(#lgGlow)}
+</style>
+<style>
+.form{ margin-top:10px; }
+.wd-f textarea{
+  display:block; width:100%; min-height:120px; padding:26px 0 8px; resize:vertical;
+  font:500 16px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:var(--text);
+  background:transparent; border:0; border-bottom:1px solid var(--border-strong); border-radius:0;
+  outline:none; -webkit-appearance:none; appearance:none; transition:border-color .25s var(--ease);
+}
+.wd-f textarea::placeholder{ color:transparent; transition:color .25s var(--ease); }
+.wd-f textarea:focus::placeholder{ color:color-mix(in srgb, var(--text-dim) 65%, transparent); }
+.wd-f textarea:focus ~ label,
+.wd-f textarea:not(:placeholder-shown) ~ label{ transform:translateY(-19px) scale(.8); }
+.wd-f textarea:focus ~ label{ color:var(--brand-deep); }
+body.dark .wd-f textarea:focus ~ label{ color:var(--brand); }
+.wd-f textarea.invalid{ border-bottom-color:var(--danger); }
+.wd-f textarea.invalid ~ label{ color:var(--danger); }
+.wd-f:has(textarea.invalid)::after{ background:var(--danger); transform:scaleX(1); }
+.note{ margin:18px 2px 0; padding:12px 14px; font-size:12.5px; line-height:1.5; color:var(--text-dim);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); }
+.page{ display:flex; flex-direction:column; }
+</style>
+</head>
+
+<body>
+<div class="page">
+  <div class="top">
+    <a class="brand" href="intro.html" aria-label="BoostGrid home"><svg class="wm" viewBox="48 2 246 52" role="img" aria-label="BoostGrid"><defs>
+      <linearGradient id="lgB" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" style="stop-color:var(--wm-b1)"/><stop offset="1" style="stop-color:var(--wm-b2)"/></linearGradient>
+      <linearGradient id="lgG" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="32"><stop offset="0" style="stop-color:var(--wm-g1)"/><stop offset=".55" style="stop-color:var(--wm-g2)"/><stop offset="1" style="stop-color:var(--wm-g3)"/></linearGradient>
+      <linearGradient id="lgL" gradientUnits="userSpaceOnUse" x1="56" y1="0" x2="285" y2="0"><stop offset="0" style="stop-color:var(--wm-u);stop-opacity:0"/><stop offset="1" style="stop-color:var(--wm-u)"/></linearGradient>
+      <filter id="lgGlow" x="-20%" y="-30%" width="140%" height="160%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <g class="wm-glow">
+      <!-- letters drawn by hand as sharp, chamfered strokes (no font) -->
+      <g transform="translate(56 12) skewX(-8)" fill="none" stroke-width="5" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6">
+        <g stroke="url(#lgB)"><path transform="translate(0 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M16 14.5L19.5 18V24.5L14.5 29.5H2.5"/><path transform="translate(27 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(54 0)" d="M7.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H7.5L2.5 24.5V7.5Z"/><path transform="translate(81 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V11L7 14.5H15L19.5 18V24.5L14.5 29.5H7.5L2.5 24.5"/><path transform="translate(108 0)" d="M2.5 2.5H19.5M11 2.5V29.5"/></g>
+        <g stroke="url(#lgG)"><path transform="translate(140 0)" d="M19.5 7.5L14.5 2.5H7.5L2.5 7.5V24.5L7.5 29.5H14.5L19.5 24.5V16H11"/><path transform="translate(167 0)" d="M2.5 29.5V2.5H14.5L19.5 7.5V11L16 14.5H2.5M12 14.5L19.5 29.5"/><path transform="translate(213 0)" d="M2.5 2.5H14.5L19.5 7.5V24.5L14.5 29.5H2.5Z"/></g>
+        <g transform="translate(194 0)" stroke="none">
+          <path d="M4.8 25L7 32L9.2 25Z" style="fill:var(--wm-flame)"/><path d="M6 25L7 29L8 25Z" style="fill:var(--wm-hi)"/>
+          <path d="M2.6 17L-.6 26.5L2.6 25ZM11.4 17L14.6 26.5L11.4 25Z" fill="url(#lgG)"/>
+          <path d="M2.6 12.5H11.4V25H2.6Z" fill="url(#lgB)"/>
+          <path d="M7 0C10.2 3.6 11.4 7.6 11.4 12.5H2.6C2.6 7.6 3.8 3.6 7 0Z" fill="url(#lgG)"/>
+          <circle cx="7" cy="18.6" r="2.6" fill="url(#lgG)"/><circle cx="7" cy="18.6" r="1.6" style="fill:var(--wm-core)"/>
+        </g>
+      </g>
+      <path d="M56 47H285" stroke="url(#lgL)" stroke-width="2"/>
+    </g>
+  </svg></a>
+  </div>
+
+  <div class="head">
+    <h1>Apply as admin</h1>
+    <p>Admins review earner submissions and keep projects running smoothly. Tell us about yourself and the owner will review your application.</p>
+  </div>
+
+  <div class="form" id="form" novalidate>
+    <div class="wd-f"><input id="name" type="text" autocomplete="name" maxlength="255" placeholder="Full name"><label for="name">Full name</label></div>
+    <div class="vf" id="vf-name"></div>
+
+    <div class="wd-f"><input id="nickname" type="text" autocomplete="off" maxlength="12" placeholder="Nickname"><label for="nickname">Nickname (1-12 characters, no spaces)</label></div>
+    <div class="vf" id="vf-nickname"></div>
+
+    <div class="wd-f"><input id="email" type="email" inputmode="email" autocomplete="email" maxlength="255" placeholder="Email address"><label for="email">Email address</label></div>
+    <div class="vf" id="vf-email"></div>
+
+    <div class="wd-f"><input id="password" type="password" autocomplete="new-password" maxlength="128" placeholder="Password"><label for="password">Password</label>
+      <button class="eye" type="button" id="eye1" aria-label="Show password"></button></div>
+    <div class="meter" id="meter" data-s="0"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="vf" id="vf-password">At least 8 characters. Mix upper and lower case, a number and a symbol.</div>
+
+    <div class="wd-f"><input id="confirm" type="password" autocomplete="new-password" maxlength="128" placeholder="Confirm password"><label for="confirm">Confirm password</label></div>
+    <div class="vf" id="vf-confirm"></div>
+
+    <div class="wd-f"><textarea id="bio" maxlength="500" placeholder="Tell us about your experience"></textarea><label for="bio">Short bio (at least 30 characters)</label></div>
+    <div class="vf" id="vf-bio"><span></span><span class="cnt" id="bioCnt">0/500</span></div>
+
+    <label class="agree" id="agreeRow" for="agree">
+      <input type="checkbox" id="agree">
+      <span>I have read the <a href="rules.html" target="_blank" rel="noopener">Platform Rules</a> and <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+    </label>
+
+    <p class="note">Your application stays pending until the owner approves it. You won't be able to log in as an admin before then.</p>
+
+    <button class="go" id="submitBtn" type="button"><span>Submit application</span></button>
+    <p class="formerr" id="formErr" role="alert"></p>
+  </div>
+
+  <p class="foot">Not applying as an admin?<a href="signup.html">Create a normal account</a></p>
+</div>
+
+<div class="overlay" id="doneOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <div class="mico" id="dIcon"></div>
+    <h3 id="dTitle">Application sent</h3>
+    <p>Thanks! The owner will review your application. You can log in as soon as it is approved. Until then, logging in will show that your application is waiting.</p>
+    <button class="go" id="dGo" type="button">Back to login</button>
+  </div>
+</div>
+
+<script type="module">
+import { account, ID, callFunction, FUNCTIONS } from "./lib/appwrite-config.js";
+
+const $ = id => document.getElementById(id);
+const RESERVED_NICKS = ["admin", "owner", "support", "socihub", "boostgrid", "moderator", "staff", "system", "official"];
+const ICON = {
+  eye:   '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:'<svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.2"/><path d="M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 4.4-1"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+};
+
+/* Theme: saved choice, else the device setting */
+let savedTheme = null;
+try { savedTheme = localStorage.getItem("sh-theme") || localStorage.getItem("theme"); } catch (e) {}
+document.body.classList.toggle("dark", savedTheme ? savedTheme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
+
+/* Validation (same rules as the normal signup page) */
+const passwordChecks = p => ({ len: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), num: /\d/.test(p), sym: /[^A-Za-z0-9]/.test(p) });
+const passwordScore = p => p ? Object.values(passwordChecks(p)).filter(Boolean).length : 0;
+const clean = {
+  name: v => v.trim().replace(/\s+/g, " "),
+  nickname: v => v.trim(),
+  email: v => v.trim().toLowerCase(),
+  password: v => v, confirm: v => v,
+  bio: v => v.trim()
+};
+const check = {
+  name(v) { v = clean.name(v); if (v.length < 2) return "Please enter your full name."; if (!/\p{L}/u.test(v)) return "Your name should contain letters."; return ""; },
+  nickname(v) {
+    v = clean.nickname(v);
+    if (!v) return "Please choose a nickname.";
+    if (/\s/.test(v)) return "No spaces allowed in a nickname.";
+    if (v.length > 12) return "Keep it to 12 characters or fewer.";
+    if (RESERVED_NICKS.includes(v.toLowerCase())) return "That nickname is reserved. Try another one.";
+    if (/^[._-]+$/.test(v)) return "Add at least one letter or number.";
+    return "";
+  },
+  email(v) { v = clean.email(v); if (!v) return "Please enter your email."; if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "That email doesn't look right."; return ""; },
+  password(v) {
+    if (!v) return "Please choose a password.";
+    if (v.length < 8) return "Use at least 8 characters.";
+    const c = passwordChecks(v);
+    if (!c.num || !/[a-zA-Z]/.test(v)) return "Add letters and at least one number.";
+    if (passwordScore(v) < 2) return "That password is too weak. Mix cases, add a number or symbol.";
+    return "";
+  },
+  confirm(v) { if (!v) return "Please confirm your password."; if (v !== $("password").value) return "Passwords don't match."; return ""; },
+  bio(v) { v = clean.bio(v); if (v.length < 30) return "Write at least 30 characters (" + v.length + " so far)."; return ""; }
+};
+const KEYS = ["name", "nickname", "email", "password", "confirm", "bio"];
+
+function showMsg(key, msg, cls) {
+  const box = $("vf-" + key);
+  const target = key === "bio" ? box.firstElementChild : box;
+  target.textContent = msg || "";
+  box.classList.toggle("err", cls === "err");
+  box.classList.toggle("ok", cls === "ok");
+}
+function validate(key, loud) {
+  const el = $(key), err = check[key](el.value);
+  el.classList.toggle("invalid", !!err && loud);
+  if (loud) showMsg(key, err, err ? "err" : "");
+  return !err;
+}
+
+KEYS.forEach(k => {
+  const el = $(k);
+  el.addEventListener("input", () => {
+    el.classList.remove("invalid");
+    $("formErr").textContent = "";
+    if (k === "nickname") {
+      const v = el.value;
+      if (!v) showMsg(k, "", "");
+      else { const e = check.nickname(v); showMsg(k, e || "Looks good.", e ? "err" : "ok"); }
+    } else if (k === "password") {
+      $("meter").dataset.s = passwordScore(el.value);
+      showMsg(k, "At least 8 characters. Mix upper and lower case, a number and a symbol.", "");
+    } else if (k === "confirm") {
+      const v = el.value;
+      showMsg(k, v ? (v === $("password").value ? "Passwords match." : "Passwords don't match yet.") : "", v === $("password").value && v ? "ok" : "");
+    } else if (k === "bio") {
+      $("bioCnt").textContent = el.value.length + "/500";
+      showMsg(k, "", "");
+    } else showMsg(k, "", "");
+  });
+  el.addEventListener("blur", () => { if (el.value) validate(k, true); });
+});
+
+/* Show / hide password */
+let shown = false;
+$("eye1").innerHTML = ICON.eye;
+$("eye1").addEventListener("click", () => {
+  shown = !shown;
+  $("password").type = shown ? "text" : "password";
+  $("confirm").type = shown ? "text" : "password";
+  $("eye1").innerHTML = shown ? ICON.eyeOff : ICON.eye;
+  $("eye1").setAttribute("aria-label", shown ? "Hide password" : "Show password");
+});
+
+/* Submit: create the account, then file the application (the owner approves it in the owner dashboard) */
+const acct = { created: false, session: false, applied: false };
+let busy = false;
+function friendlyError(e) {
+  const msg = String((e && e.message) || "");
+  if (!navigator.onLine || /network|failed to fetch|load failed/i.test(msg)) return "No internet connection. Please check your network and try again.";
+  if (e && (e.code === 409 || e.type === "user_already_exists")) return 'An account with this email already exists, so it can\'t be used for an admin application. <a href="login.html">Log in</a> or use a different email.';
+  if (e && (e.code === 429 || e.type === "general_rate_limit_exceeded")) return "Too many attempts. Please wait a moment and try again.";
+  if (/profile already exists/i.test(msg)) return "This account already has a profile, so it can't apply as an admin. Use a different email.";
+  return msg || "Something went wrong. Please try again.";
+}
+function paintButton() {
+  $("submitBtn").disabled = false;
+  $("submitBtn").innerHTML = "<span>Submit application</span>";
+}
+$("submitBtn").addEventListener("click", async () => {
+  if (busy) return;
+  const ok = KEYS.map(k => validate(k, true)).every(Boolean);
+  if (!ok) { $("formErr").textContent = "Please fix the highlighted fields."; return; }
+  if (!$("agree").checked) { $("agreeRow").classList.add("bad"); $("formErr").textContent = "Please accept the rules and privacy policy to continue."; return; }
+  $("agreeRow").classList.remove("bad");
+  if (!navigator.onLine) { $("formErr").textContent = "You are offline."; return; }
+
+  const v = { name: clean.name($("name").value), nickname: clean.nickname($("nickname").value), email: clean.email($("email").value), password: $("password").value, bio: clean.bio($("bio").value) };
+  busy = true;
+  $("submitBtn").disabled = true;
+  $("submitBtn").innerHTML = '<span class="spin"></span><span>Submitting…</span>';
+  $("formErr").textContent = "";
+  try {
+    if (!acct.created) {
+      try { await account.deleteSession("current"); } catch (e) {}      // a leftover session would block the new one
+      await account.create(ID.unique(), v.email, v.password, v.name);
+      acct.created = true;
+    }
+    if (!acct.session) { await account.createEmailPasswordSession(v.email, v.password); acct.session = true; }
+    if (!acct.applied) {
+      try { await callFunction(FUNCTIONS.LEDGER_OPS, { action: "apply-admin", name: v.name, nickname: v.nickname, bio: v.bio }); }
+      catch (e) { if (!/profile already exists/i.test(String(e && e.message))) throw e; }
+      acct.applied = true;
+    }
+  } catch (e) {
+    console.error(e);
+    $("formErr").innerHTML = friendlyError(e);
+    busy = false; paintButton();
+    return;
+  }
+  try { await account.deleteSession("current"); } catch (e) {}          // pending admins don't stay signed in
+  busy = false;
+  $("dIcon").innerHTML = ICON.check;
+  $("doneOverlay").classList.add("show");
+});
+$("dGo").addEventListener("click", () => { window.location.href = "login.html"; });
+</script>
+</body>
+</html>
