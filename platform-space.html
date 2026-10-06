@@ -279,6 +279,42 @@ h2{font-size:13px;font-weight:400;color:var(--mute);margin:22px 0 8px}
 .net-in{max-width:300px}.net-ico{width:56px;height:56px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
 .net-ico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .net h3{font:400 21px Georgia,serif;margin:0 0 6px}.net p{color:var(--mute);line-height:1.45}.net .btn.pri{margin-top:18px}
+/* promo project flow: same layout as the client's Details + Submit steps, in the platform-space look */
+.pr-steps{position:sticky;top:-6px;z-index:5;display:flex;align-items:center;margin:0 -15px 14px;padding:12px 15px;background:color-mix(in srgb,var(--card) 90%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.pr-step{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--mute);transition:color .25s}
+.pr-step i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--tile);border:1px solid var(--line);transition:background .3s,color .3s,transform .4s cubic-bezier(.3,1.4,.5,1)}
+.pr-step.on{color:var(--text)}.pr-step.on i{background:var(--blue);color:var(--blue-text);border-color:transparent;transform:scale(1.12);box-shadow:0 0 0 4px color-mix(in srgb,var(--spark) 20%,transparent)}
+.pr-step.done{color:var(--pos)}.pr-step.done i{background:color-mix(in srgb,var(--pos) 16%,transparent);border-color:color-mix(in srgb,var(--pos) 45%,transparent);color:var(--pos);font-size:0}.pr-step.done i::before{content:"\2713";font-size:12px}
+.pr-bar{flex:1;height:2px;margin:0 10px;border-radius:2px;background:var(--line);position:relative;overflow:hidden}.pr-bar::after{content:"";position:absolute;inset:0;background:var(--spark);transform:scaleX(0);transform-origin:left;transition:transform .45s}.pr-bar.fill::after{transform:scaleX(1)}
+.pr-h{margin:2px 2px 12px}.pr-h b{display:block;font:400 21px/1.25 Georgia,serif;letter-spacing:-.01em}.pr-h span{font-size:13px;color:var(--mute)}
+.pr-card{border:1px solid var(--line);border-radius:16px;padding:16px 14px}
+.pr-f{margin-bottom:16px}.pr-f:last-child{margin-bottom:0}
+.pr-f>label{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--mute);margin-bottom:7px}.pr-f>label em{font-style:normal;font-size:11px}
+.pr-f .field{margin:0;font-size:14px}.pr-f textarea.field{min-height:104px;resize:vertical;line-height:1.45}
+.pr-f .field.bad,.pr-dd-b.bad{border-color:var(--neg)}.pr-f .field:focus{border-color:var(--spark);box-shadow:0 0 0 3px color-mix(in srgb,var(--spark) 18%,transparent);outline:0}
+.pr-msg{display:none;margin:6px 2px 0;font-size:12px;color:var(--neg)}.pr-msg.on{display:block}
+.pr-row{display:flex;gap:12px}.pr-row .pr-f{flex:1;min-width:0}
+.pr-dd{position:relative}.pr-dd-b{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:1px solid var(--line);background:var(--tile);border-radius:12px;padding:10px 12px;font-size:14px}
+.pr-dd-b.ph span{color:var(--mute)}.pr-dd-b svg{width:13px;height:13px;flex:none;fill:none;stroke:var(--mute);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .22s}.pr-dd.open .pr-dd-b svg{transform:rotate(180deg)}.pr-dd.open .pr-dd-b{border-color:var(--spark)}
+.pr-dd-l{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:8;max-height:220px;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transform:translateY(-4px) scale(.98);pointer-events:none;transition:opacity .18s,transform .18s}
+.pr-dd.open .pr-dd-l{opacity:1;transform:none;pointer-events:auto}
+.pr-o{display:block;width:100%;text-align:left;background:0;border:0;border-radius:10px;padding:10px 10px;font-size:14px}.pr-o:hover{background:var(--tile)}.pr-o.sel{background:var(--blue);color:var(--blue-text)}
+.pr-bal{margin:0 0 14px}.pr-bal .hero{margin-top:0}.pr-bal .amount{font-size:32px}
+.pr-pill{font-size:12px;padding:3px 9px;border-radius:99px;background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pr-cost{margin:0 0 16px;padding:12px 14px;background:var(--tile);border:1px solid var(--line);border-radius:14px}
+.pr-cost div{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;color:var(--mute)}.pr-cost b{font-weight:500;color:var(--text)}
+.pr-cost .tot{margin-top:4px;padding-top:10px;border-top:1px dashed var(--line);color:var(--text);font-size:14px}.pr-cost .tot b{font:400 18px Georgia,serif;color:var(--spark)}
+.pr-cost p{margin:8px 0 0;font-size:11.5px;color:var(--mute);line-height:1.4}
+.pr-pick{width:100%;display:flex;align-items:center;gap:9px;padding:13px 14px;font-size:14px;color:var(--mute);background:var(--tile);border:1px dashed var(--line);border-radius:12px;text-align:left}
+.pr-pick svg,.pr-adm svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pr-adm{width:100%;display:flex;align-items:center;gap:11px;padding:11px 12px;background:0;border:0;border-top:1px solid var(--line);text-align:left}.pr-adm:first-child{border-top:0}
+.pr-av{width:32px;height:32px;border-radius:50%;background:var(--blue);color:var(--blue-text);display:grid;place-items:center;font-size:13px;flex:none}
+.pr-adm .t b{font-weight:500}.pr-adm.sel .pr-av{box-shadow:0 0 0 3px color-mix(in srgb,var(--spark) 30%,transparent)}
+.pr-shots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pr-shot{position:relative;aspect-ratio:1;border:1.5px dashed var(--line);border-radius:12px;background:var(--tile);display:grid;place-items:center;color:var(--mute);overflow:hidden;cursor:pointer}
+.pr-shot svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.pr-shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pr-shot input{display:none}
+.pr-act{margin-top:18px}.pr-act .btn.pri{padding:13px 16px}.pr-act .btn.pri:disabled{opacity:.45}
+.pr-note{text-align:center;font-size:12px;color:var(--mute);margin:10px 0 0}
 </style>
 </head>
 <body>
@@ -446,7 +482,7 @@ if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches
 document.getElementById('theme').addEventListener('click',function(){t=r.getAttribute('data-theme')==='dark'?'light':'dark';r.setAttribute('data-theme',t);try{localStorage.setItem(k,t)}catch(e){}})})();
 </script>
 <script type="module">
-import { client, databases, DATABASE_ID, COLLECTIONS as C, Query, requireSession, getUserProfile, callFunction, FUNCTIONS, sendSupportMessage, hydrateProtectedMedia, logout } from "./lib/appwrite-config.js";
+import { client, databases, DATABASE_ID, COLLECTIONS as C, Query, requireSession, getUserProfile, callFunction, FUNCTIONS, sendSupportMessage, hydrateProtectedMedia, logout, Permission, Role, uploadToStorage } from "./lib/appwrite-config.js";
 import * as AW from "./lib/appwrite-config.js";
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
@@ -940,6 +976,9 @@ function profileView() {
         `<div class="pf"><div class="pf-av"><svg class="av-fig" viewBox="0 10 380 380" aria-hidden="true"><use href="#avFig"/></svg></div><b class="nm">${esc(nm)}</b>${me.email ? `<span class="em">${esc(me.email)}</span>` : ""}<span class="pill t-none">Owner</span></div>` +
         `<div class="mini"><div><small>Platform revenue</small><b>${money(total)}</b></div><div><small>Fees collected</small><b>${f(fees.length)}</b></div></div>` +
         `<div class="mini"><div><small>Clients</small><b>${f(S.cl)}</b></div><div><small>Earners</small><b>${f(S.er)}</b></div></div>` +
+        `<h2>Promo</h2><div class="mini"><div><small>Promo balance</small><b>${money(me.balance)}</b></div><div><small>Cash deducted</small><b>${PM.spent == null ? "—" : money(PM.spent)}</b></div></div>` +
+        `<div class="list"><button class="row tap" data-act="promo" type="button"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 10v4h3l5 4V6L7 10zM16 9a4 4 0 0 1 0 6"/></svg></div><div class="t"><b>New promo project</b><span>No fee, paid from your promo balance</span></div>${CHEV}</button>` +
+        `<button class="row tap" data-act="topup" type="button"><div class="ico">${COIN_I}</div><div class="t"><b>Top up promo balance</b><span>Write-up only, no real money</span></div>${CHEV}</button></div>` +
         `<div class="h2row"><h2>Recent activity</h2><button class="btn ghost" data-act="all" type="button">See all</button></div>` +
         `<div class="list">${(S.acts || []).slice(0, 4).map(actBtn).join("") || '<div class="empty">No activity yet.</div>'}</div>` +
         (acct ? `<h2>Account</h2><div class="rec">${acct}</div>` : "") +
@@ -956,6 +995,8 @@ function profileView() {
       if (actClick(e)) return;
       const b = e.target.closest("[data-act]"); if (!b) return;
       if (b.dataset.act === "all") Panel.open(activityView());
+      else if (b.dataset.act === "promo") { prReset(); Panel.open(prV1); }
+      else if (b.dataset.act === "topup") { PR.top = ""; Panel.open(prTop); }
       else if (b.dataset.act === "payouts") { PO.d = null; PO.err = ""; Panel.open(payoutView()); }
       else if (b.dataset.act === "reviews") { RV.d = null; RV.err = ""; RV.tab = "rev"; Panel.open(reviewsView()); }
       else if (b.dataset.act === "theme") { $("theme").click(); Panel.refresh(); }
@@ -1020,7 +1061,7 @@ async function loadOverview() {
 async function loadProjectTotals() {
   try { let sum = 0, n = 0, cur = null;
     for (let i = 0; i < 100; i++) { const q = [Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
-      const r = await ls(databases, C.PROJECTS, q); r.documents.forEach(p => { sum += Number(p.engagementFee) || 0; n++; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+      const r = await ls(databases, C.PROJECTS, q); r.documents.forEach(p => { if (p.isPromo === true) return; sum += Number(p.engagementFee) || 0; n++; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
     $("pWorth").textContent = money(sum); $("pCount").textContent = n.toLocaleString();
   } catch { $("pWorth").textContent = $("pCount").textContent = "—"; }
 }
@@ -1607,7 +1648,7 @@ async function load() {
   renderCash();
   setSync("busy", "Syncing"); const slow = setTimeout(() => { if ($("sync").classList.contains("busy")) setSync("busy", "Slow connection, still trying"); }, 12000);
   const ovDone = () => { $("ovSk").hidden = true; $("ovReal").hidden = false; };
-  const r = await Promise.allSettled([loadOverview().finally(ovDone), loadDeposits(), loadProjectTotals(), loadAttention(), loadInbox(), S.view === "database" ? loadDb(true) : 0, loadWithdrawn(), loadClientBal()]);
+  const r = await Promise.allSettled([loadOverview().finally(ovDone), loadDeposits(), loadProjectTotals(), loadAttention(), loadInbox(), S.view === "database" ? loadDb(true) : 0, loadWithdrawn(), loadClientBal(), loadPromoSpent()]);
   if (r[0].status === "rejected") $("actList").innerHTML = `<div class="empty">${esc(r[0].reason.message || "Could not load revenue.")}</div>`;
   if (r[0].status === "rejected" && S.fees === undefined) { S.fees = false; renderCash(); }
   if (r[0].status === "rejected") { $("total").textContent = "—"; $("delta").textContent = "—"; $("fProj").textContent = $("fWd").textContent = "—"; }
@@ -1649,6 +1690,88 @@ async function boot() {
   if (!wired) { wired = true; $("sync").addEventListener("click", load); }
   let v = "overview"; try { v = sessionStorage.getItem("ps-view") || v; } catch {} setView(TITLES[v] !== undefined ? v : "overview"); load();
 }
+/* ---- promo project: owner-only, no fee. Debits users.balance (write-up) via ledger-ops create-promo; never touches platform_revenue ---- */
+const PR = { title: "", plat: "", pdesc: "", desc: "", link: "", reward: "", eng: "", admin: null, adm: null, shots: [], files: [], top: "", busy: false, open: "", bad: {} };
+const PM = { spent: null };   // cash deducted = sum of this owner's promo projects (isPromo), never platform revenue
+const PR_TOP = [1000,2000,5000,10000,20000,50000,100000,200000,500000];
+const bal = () => Number(S.me && S.me.balance) || 0;
+const prReset = () => Object.assign(PR, { title: "", plat: "", pdesc: "", desc: "", link: "", reward: "", eng: "", admin: null, shots: [], files: [], open: "", bad: {}, busy: false });
+async function loadPromoSpent() {
+  try { let sum = 0, cur = null;
+    for (let i = 0; i < 50; i++) { const q = [Query.equal("isPromo", true), Query.equal("createdBy", S.me.$id), Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.PROJECTS, q); r.documents.forEach(p => { sum += Number(p.engagementFee) || 0; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    PM.spent = sum;
+  } catch { PM.spent = null; }
+}
+const PR_PLAT = ["Facebook","Instagram","WhatsApp","TikTok","Snapchat","Threads","LinkedIn","YouTube","Telegram","X (Twitter)","Other","None"];
+const PR_REW = [50,100,200,300,400,500], PR_ENG = [10,20,40,50,70,100,150,200,250,350,400,500,600,700,800,900,1000,1500,2000,2500,3000,4000,5000,6000,7000,8000,9000,10000];
+const prCh = '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+const prSteps = n => `<div class="pr-steps"><div class="pr-step ${n === 1 ? "on" : "done"}"><i>1</i>Details</div><div class="pr-bar ${n === 2 ? "fill" : ""}"></div><div class="pr-step ${n === 2 ? "on" : ""}"><i>2</i>Submit</div></div>`;
+const prDd = (k, ph, opts, val, bad) => `<div class="pr-dd ${PR.open === k ? "open" : ""}"><button type="button" class="pr-dd-b ${val ? "" : "ph"} ${bad ? "bad" : ""}" data-pr="dd" data-k="${k}"><span>${esc(val ? opts.find(o => String(o.v) === String(val))?.l || val : ph)}</span>${prCh}</button><div class="pr-dd-l">${opts.map(o => `<button type="button" class="pr-o ${String(o.v) === String(val) ? "sel" : ""}" data-pr="opt" data-k="${k}" data-v="${esc(o.v)}">${esc(o.l)}</button>`).join("")}</div></div>`;
+const prMsg = (k, t) => `<p class="pr-msg ${PR.bad[k] ? "on" : ""}">${t}</p>`;
+const prTotal = () => (Number(PR.reward) || 0) * (Number(PR.eng) || 0);
+function prDetails(b) {
+  const B = k => PR.bad[k] ? "bad" : "";
+  b.innerHTML = prSteps(1) + `<div class="pr-h"><b>Promo details</b><span>Tell earners exactly what to do.</span></div><div class="pr-card">
+  <div class="pr-f"><label for="prT">Task title</label><input class="field ${B("title")}" id="prT" data-prf="title" maxlength="80" autocomplete="off" value="${esc(PR.title)}">${prMsg("title", "Task title is required.")}</div>
+  <div class="pr-f"><label>Required platform</label>${prDd("plat", "Select a platform", PR_PLAT.map(p => ({ v: p, l: p })), PR.plat, PR.bad.plat)}${prMsg("plat", "Please select a platform.")}</div>
+  ${PR.plat === "Other" ? `<div class="pr-f"><label for="prPd">Describe what earners need to submit</label><textarea class="field ${B("pdesc")}" id="prPd" data-prf="pdesc" rows="3" placeholder="e.g. Get an account on the app and submit your username">${esc(PR.pdesc)}</textarea>${prMsg("pdesc", "Please describe what earners need to submit.")}</div>` : ""}
+  <div class="pr-f"><label for="prD">Description</label><textarea class="field ${B("desc")}" id="prD" data-prf="desc" placeholder="Tell engagers exactly what to do">${esc(PR.desc)}</textarea>${prMsg("desc", "Description is required.")}</div>
+  <div class="pr-f"><label for="prL">Link to the post / page</label><input class="field ${B("link")}" id="prL" data-prf="link" inputmode="url" placeholder="https://" autocomplete="off" value="${esc(PR.link)}">${prMsg("link", "Must start with https://")}</div></div>
+  <div class="pr-act"><button class="btn pri" type="button" data-pr="next">Continue</button><p class="pr-note">Reward, engagements and the promo balance are set on the next step.</p></div>`;
+}
+function prSubmit(b) {
+  const t = prTotal(), short = t > bal(), ok = PR.reward && PR.eng && PR.admin && !short && !PR.busy;
+  const adm = PR.admin ? `<button type="button" class="pr-adm sel" data-pr="admbtn" style="border:1px solid var(--line);border-radius:12px;background:var(--tile)"><span class="pr-av">${esc((PR.admin.name || "A")[0].toUpperCase())}</span><span class="t"><b>${esc(PR.admin.name)}</b></span></button>` : `<button type="button" class="pr-pick" data-pr="admbtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.500 5-6 8-6s6.500 1.500 8 6"/></svg>Choose an admin</button>`;
+  const list = PR.open === "adm" ? `<div class="list" style="margin-top:8px;padding:0">${PR.adm === null ? '<p class="empty">Loading admins…</p>' : PR.adm.length ? PR.adm.map(a => `<button type="button" class="pr-adm" data-pr="adm" data-id="${esc(a.$id)}" data-n="${esc(a.name || a.email)}"><span class="pr-av">${esc((a.name || a.email || "A")[0].toUpperCase())}</span><span class="t"><b>${esc(a.name || a.email)}</b><span>${esc(a.email || "")}</span></span></button>`).join("") : '<p class="empty">No admins found.</p>'}</div>` : "";
+  b.innerHTML = prSteps(2) + `<div class="pr-bal"><section class="hero"><div class="hero-top"><span>Promo balance</span><span class="pr-pill">Write-up only</span></div><div class="hero-mid"><div class="amount">${money(bal())}</div></div><div class="hero-foot"><div><small>Cash deducted</small><b>${money(t)}</b></div><div><button class="btn ghost" type="button" data-pr="topup">Top up</button></div></div></section></div>
+  <div class="pr-card"><div class="pr-row"><div class="pr-f"><label>Reward per engager</label>${prDd("rew", "Select reward", PR_REW.map(v => ({ v, l: "₦" + v })), PR.reward)}</div><div class="pr-f"><label>Engagements</label>${prDd("eng", "Select number", PR_ENG.map(v => ({ v, l: String(v) })), PR.eng)}</div></div>
+  ${t ? `<div class="pr-cost"><div><span>Engagement reward</span><b>${money(t)}</b></div><div><span>Balance after</span><b style="${short ? "color:var(--neg)" : ""}">${money(bal() - t)}</b></div><div class="tot"><span>Deducted from promo balance</span><b>${money(t)}</b></div><p>${short ? "Not enough promo balance. Tap Top up." : "No real money moves. You owe earners " + money(t) + " once the admin confirms the tasks."}</p></div>` : ""}
+  <div class="pr-f"><label>Assign to admin</label>${adm}${list}</div>
+  <div class="pr-f"><label>Example screenshots <em>optional, up to 5</em></label><div class="pr-shots">${[0,1,2,3,4].map(i => `<label class="pr-shot">${PR.shots[i] ? `<img alt="" src="${PR.shots[i]}">` : '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.500"/><path d="M21 16l-5-5-8 8"/></svg>'}<input type="file" accept="image/*" data-prs="${i}"></label>`).join("")}</div></div></div>
+  <div class="pr-act"><button class="btn pri" type="button" data-pr="create" ${ok ? "" : "disabled"}>Create promo project</button></div>`;
+}
+const prTop = { id: "prtop", title: "Top up", sub: "Promo balance · write-up only", render(b) {
+  b.innerHTML = `<div class="pr-bal"><section class="hero"><div class="hero-top"><span>Promo balance</span><span class="pr-pill">Write-up only</span></div><div class="hero-mid"><div class="amount">${money(bal())}</div></div></section></div>
+  <div class="pr-card"><div class="pr-f"><label>Amount</label>${prDd("top", "Select amount", PR_TOP.map(v => ({ v, l: money(v) })), PR.top)}</div></div>
+  <div class="pr-act"><button class="btn pri" type="button" data-pr="dotop" ${PR.top && !PR.busy ? "" : "disabled"}>Top up ${PR.top ? money(PR.top) : ""}</button><p class="pr-note">Nothing is charged and nothing is added to platform revenue.</p></div>`; }, click: e => prClick(e) };
+const prV1 = { id: "pr1", title: "Promo project", sub: "No fee · write-up balance", render: prDetails, click: prClick };
+const prV2 = { id: "pr2", title: "Promo project", sub: "Reward and promo balance", render: prSubmit, click: prClick };
+async function prLoadAdmins() {
+  try { PR.adm = (await ls(databases, C.USERS, [Query.equal("role", "admin"), Query.limit(25)])).documents; } catch { PR.adm = []; }
+  if (PR.open === "adm") Panel.refresh();
+}
+function prClick(e) {
+  const b = e.target.closest("[data-pr]"); if (!b) return; const a = b.dataset.pr;
+  if (a === "dd") { PR.open = PR.open === b.dataset.k ? "" : b.dataset.k; Panel.refresh(); }
+  else if (a === "opt") { const k = b.dataset.k; if (k === "plat") { PR.plat = b.dataset.v; delete PR.bad.plat; } else PR[{ rew: "reward", eng: "eng", top: "top" }[k]] = b.dataset.v; PR.open = ""; Panel.refresh(); }
+  else if (a === "admbtn") { PR.open = PR.open === "adm" ? "" : "adm"; if (PR.open && PR.adm === null) prLoadAdmins(); Panel.refresh(); }
+  else if (a === "adm") { PR.admin = { id: b.dataset.id, name: b.dataset.n }; PR.open = ""; Panel.refresh(); }
+  else if (a === "next") {
+    PR.bad = {}; if (!PR.title.trim()) PR.bad.title = 1; if (!PR.plat) PR.bad.plat = 1; if (PR.plat === "Other" && !PR.pdesc.trim()) PR.bad.pdesc = 1;
+    if (!PR.desc.trim()) PR.bad.desc = 1; if (!/^https:\/\/\S+/i.test(PR.link.trim())) PR.bad.link = 1;
+    if (Object.keys(PR.bad).length) { Panel.refresh(); return; } PR.open = ""; Panel.open(prV2);
+  }
+  else if (a === "topup") { PR.top = ""; PR.open = ""; Panel.open(prTop); }
+  else if (a === "dotop") prTopUp();
+  else if (a === "create") prCreate();
+}
+async function prTopUp() {
+  if (PR.busy || !PR.top) return; PR.busy = true; Panel.refresh();
+  try { const r = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "promo-topup", amount: Number(PR.top) }); S.me.balance = r.balance; toast("Promo balance " + money(r.balance)); PR.top = ""; PR.busy = false; Panel.back(); }
+  catch (e) { PR.busy = false; toast(e.message || "Top up failed"); Panel.refresh(); }
+}
+async function prCreate() {
+  if (PR.busy) return; PR.busy = true; Panel.refresh();
+  try {
+    const files = PR.files.filter(Boolean), perms = [Permission.read(Role.users()), Permission.write(Role.user(S.me.$id))];
+    const shots = await Promise.all(files.map(f => uploadToStorage(f, perms)));
+    const r = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "create-promo", adminId: PR.admin.id, adminName: PR.admin.name, title: PR.title.trim(), description: PR.desc.trim(), link: PR.link.trim(), reward: Number(PR.reward), engagers: Number(PR.eng), requiredPlatform: PR.plat, requiredPlatformDescription: PR.pdesc.trim(), screenshotUrls: shots });
+    S.me.balance = bal() - r.total; PM.spent = (PM.spent || 0) + r.total; toast("Promo project created"); prReset(); Panel.closeAll();
+  } catch (e) { PR.busy = false; toast(e.message || "Could not create the promo project"); Panel.refresh(); }
+}
+$("pnBody").addEventListener("input", e => { const k = e.target.dataset.prf; if (!k) { return; } PR[k] = e.target.value; if (PR.bad[k]) { delete PR.bad[k]; e.target.classList.remove("bad"); const m = e.target.parentNode.querySelector(".pr-msg"); if (m) m.classList.remove("on"); } });
+$("pnBody").addEventListener("change", e => { const i = e.target.dataset.prs; if (i === undefined || !e.target.files[0]) return; PR.shots[i] = URL.createObjectURL(e.target.files[0]); PR.files[i] = e.target.files[0]; Panel.refresh(); });
 boot();
 </script>
 </body>

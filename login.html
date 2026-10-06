@@ -189,6 +189,57 @@ body.dark .foot a{ color:var(--brand); }
 @keyframes rise{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
 @media (prefers-reduced-motion:reduce){ .view{ animation:none; } }
   .wm{--wm-b1:#0d1f17;--wm-b2:#1f6b50;--wm-g1:#00cc88;--wm-g2:#00a873;--wm-g3:#008a5e;--wm-u:#00a873;--wm-flame:#ff9a3c;--wm-hi:#ffffff;--wm-core:#0d1f17;} body.dark .wm{--wm-b1:#ffffff;--wm-b2:#b6ffe2;--wm-g1:#7dffd0;--wm-g2:#00e6a0;--wm-g3:#00b880;--wm-u:#00e6a0;--wm-flame:#ffb86b;--wm-hi:#ffffff;--wm-core:#04100b;} .wm .wm-glow{filter:none} body.dark .wm .wm-glow{filter:url(#lgGlow)}
+
+/* ---------- Desktop layout (>=1024px): brand panel left, form card right. Phone layout above is untouched. ---------- */
+.showcase{ display:none; }
+@media (min-width:1024px){
+  body{ display:grid; grid-template-columns:minmax(440px,1.05fr) minmax(480px,1fr); background:var(--bg); }
+
+  .showcase{
+    position:sticky; top:0; height:100dvh; display:flex; flex-direction:column; justify-content:center;
+    padding:64px clamp(48px,6vw,96px); overflow:hidden; color:#eafff4;
+    background:
+      radial-gradient(70% 55% at 15% 0%, rgba(0,230,160,.22) 0%, transparent 65%),
+      radial-gradient(60% 50% at 100% 100%, rgba(0,204,136,.16) 0%, transparent 70%),
+      #05100c;
+  }
+  /* the "grid" in BoostGrid */
+  .showcase::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:linear-gradient(rgba(125,255,208,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(125,255,208,.07) 1px, transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(80% 80% at 30% 40%, #000 0%, transparent 100%);
+            mask-image:radial-gradient(80% 80% at 30% 40%, #000 0%, transparent 100%);
+  }
+  .showcase > *{ position:relative; max-width:520px; }
+  .sc-eyebrow{ align-self:flex-start; display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:999px; font:600 12.5px system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; color:#7dffd0; background:rgba(0,230,160,.1); border:1px solid rgba(0,230,160,.25); }
+  .sc-eyebrow i{ width:7px; height:7px; border-radius:50%; background:#00e6a0; box-shadow:0 0 10px #00e6a0; }
+  .showcase h2{ margin:22px 0 0; font:700 clamp(34px,3.4vw,46px)/1.12 'Sora',system-ui,sans-serif; letter-spacing:-.03em; }
+  .showcase h2 em{ font-style:normal; background:linear-gradient(135deg,#7dffd0,#00e6a0); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .showcase > p{ margin:18px 0 0; font-size:16px; line-height:1.6; color:#9fc4b4; }
+  .sc-list{ list-style:none; margin:40px 0 0; padding:0; display:grid; gap:14px; }
+  .sc-list li{ display:flex; align-items:flex-start; gap:16px; padding:16px 18px; border-radius:var(--radius-md); background:rgba(14,31,23,.65); border:1px solid rgba(0,230,160,.14); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .sc-ic{ flex:none; width:40px; height:40px; display:grid; place-items:center; border-radius:12px; background:rgba(0,230,160,.12); color:#00e6a0; }
+  .sc-ic svg{ width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .sc-list b{ display:block; font:700 15px 'Sora',system-ui,sans-serif; letter-spacing:-.01em; }
+  .sc-list span{ display:block; margin-top:3px; font-size:13.5px; line-height:1.5; color:#87a89a; }
+
+  .page{ max-width:none; padding:32px clamp(32px,5vw,72px); }
+  .page > *{ width:100%; max-width:440px; margin-left:auto; margin-right:auto; }
+  .top{ margin-bottom:auto; }
+  .view{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); padding:40px 40px 32px; }
+  .head{ margin:0 0 4px; }
+  .head h1{ font-size:30px; }
+  .head p{ font-size:14.5px; }
+  .wd-f:first-of-type{ margin-top:18px; }
+  .go{ height:56px; }
+  .go:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 12px 26px color-mix(in srgb, var(--brand) 38%, transparent); }
+  .foot{ margin:24px auto auto; padding-top:0; }
+}
+@media (min-width:1024px) and (max-height:700px){
+  .showcase{ justify-content:flex-start; padding-top:40px; }
+  .sc-list{ margin-top:24px; }
+}
 </style>
 </head>
 
@@ -201,6 +252,16 @@ body.dark .foot a{ color:var(--brand); }
     </div>
   </div>
 </div>
+<aside class="showcase" aria-hidden="true">
+  <div class="sc-eyebrow"><i></i>Social tasks, paid out</div>
+  <h2>Earn from social tasks. <em>Grow your reach.</em></h2>
+  <p>One account for earners and campaign owners. Log in to manage your tasks, earnings and campaigns.</p>
+  <ul class="sc-list">
+    <li><div class="sc-ic"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div><b>Earn on your own time</b><span>Pick up tasks, complete them and get rewarded.</span></div></li>
+    <li><div class="sc-ic"><svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg></div><div><b>Launch campaigns</b><span>Put your page or channel in front of real people.</span></div></li>
+    <li><div class="sc-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></div><div><b>Everything in one dashboard</b><span>Track balance, projects and progress at a glance.</span></div></li>
+  </ul>
+</aside>
 <div class="page">
   <div class="top">
     <a class="brand" href="intro.html" aria-label="BoostGrid home"><svg class="wm" viewBox="48 2 246 52" role="img" aria-label="BoostGrid"><defs>
