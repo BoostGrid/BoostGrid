@@ -3292,8 +3292,8 @@ body.dark .referee-status.pending{ color:#f0c04a; background:#3a2c0d; }
             <div class="section">
               <div class="label">Pay With</div>
               <div id="methodToggle" style="display:flex; gap:10px;">
-                <button type="button" class="method-btn active" data-method="paystack" style="flex:1; margin-top:0;">Paystack</button>
-                <button type="button" class="method-btn" data-method="flutterwave" style="flex:1; margin-top:0;">Flutterwave</button>
+                <button type="button" class="method-btn active" data-method="flutterwave" style="flex:1; margin-top:0;">Flutterwave</button>
+                <button type="button" class="method-btn" data-method="paystack" style="flex:1; margin-top:0;">Paystack</button>
               </div>
             </div>
 
@@ -6245,7 +6245,7 @@ body.dark .referee-status.pending{ color:#f0c04a; background:#3a2c0d; }
   });
 
   // ---- Deposit tab: payment method toggle ----
-  let selectedMethod = 'paystack';
+  let selectedMethod = 'flutterwave';
   document.querySelectorAll('.method-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
@@ -9164,7 +9164,7 @@ body.dark .referee-status.pending{ color:#f0c04a; background:#3a2c0d; }
         if(!result.alreadyProcessed){
           load('balance', true);
           load('deposits', true);
-          showAlert('A previous deposit of ₦' + Number(pending.amount).toLocaleString() + 'has been verified and added to your balance.');
+          showAlert('A previous deposit of ₦' + Number(pending.amount).toLocaleString() + ' has been verified and added to your balance.');
         }
       } catch(err){
         // left in place on purpose, tried again the next time the dashboard opens
