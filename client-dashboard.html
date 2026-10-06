@@ -3647,6 +3647,8 @@ body.dark .referee-status.pending{ color:#f0c04a; background:#3a2c0d; }
             <option value="100">₦100</option>
             <option value="200">₦200</option>
             <option value="300">₦300</option>
+            <option value="400">₦400</option>
+            <option value="500">₦500</option>
           </select>
           <div class="cr-ddown" id="crRewardDdown">
             <button type="button" class="cr-ddown-btn" id="crRewardDdownBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="crRewardSelLbl">
@@ -3660,11 +3662,13 @@ body.dark .referee-status.pending{ color:#f0c04a; background:#3a2c0d; }
           <label id="crEngagersSelLbl">Engagements</label>
           <select id="crEngagersSel" hidden aria-hidden="true" tabindex="-1">
             <option value="">Select number</option>
-            <option value="2">2</option><option value="10">10</option><option value="50">50</option>
-            <option value="100">100</option><option value="200">200</option><option value="300">300</option>
-            <option value="400">400</option><option value="500">500</option><option value="600">600</option>
-            <option value="700">700</option><option value="800">800</option><option value="900">900</option>
-            <option value="1000">1000</option>
+            <option value="10">10</option><option value="20">20</option><option value="40">40</option><option value="50">50</option>
+            <option value="70">70</option><option value="100">100</option><option value="150">150</option><option value="200">200</option>
+            <option value="250">250</option><option value="350">350</option><option value="400">400</option><option value="500">500</option>
+            <option value="600">600</option><option value="700">700</option><option value="800">800</option><option value="900">900</option>
+            <option value="1000">1000</option><option value="1500">1500</option><option value="2000">2000</option><option value="2500">2500</option>
+            <option value="3000">3000</option><option value="4000">4000</option><option value="5000">5000</option><option value="6000">6000</option>
+            <option value="7000">7000</option><option value="8000">8000</option><option value="9000">9000</option><option value="10000">10000</option>
           </select>
           <div class="cr-ddown" id="crEngagersDdown">
             <button type="button" class="cr-ddown-btn" id="crEngagersDdownBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="crEngagersSelLbl">
@@ -8107,7 +8111,7 @@ body.dark .referee-status.pending{ color:#f0c04a; background:#3a2c0d; }
     if(!Loading.referralCode()) return;
     const link = 'https://' + document.getElementById('refLinkText').textContent;
     if(navigator.share){
-      navigator.share({ title:'Join BoostGrid', text:'Join me on BoostGrid and start earning today.', url:link }).catch(() => {});
+      navigator.share({ title:'Join BoostGrid', text:'Join me on BoostGrid and grow your social reach with real engagement.', url:link }).catch(() => {});
     } else if(navigator.clipboard){
       navigator.clipboard.writeText(link).catch(() => {});
     }
