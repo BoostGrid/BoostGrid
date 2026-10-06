@@ -976,9 +976,9 @@ function profileView() {
         `<div class="pf"><div class="pf-av"><svg class="av-fig" viewBox="0 10 380 380" aria-hidden="true"><use href="#avFig"/></svg></div><b class="nm">${esc(nm)}</b>${me.email ? `<span class="em">${esc(me.email)}</span>` : ""}<span class="pill t-none">Owner</span></div>` +
         `<div class="mini"><div><small>Platform revenue</small><b>${money(total)}</b></div><div><small>Fees collected</small><b>${f(fees.length)}</b></div></div>` +
         `<div class="mini"><div><small>Clients</small><b>${f(S.cl)}</b></div><div><small>Earners</small><b>${f(S.er)}</b></div></div>` +
-        `<h2>Promo</h2><div class="mini"><div><small>Promo balance</small><b>${money(me.balance)}</b></div><div><small>Cash deducted</small><b>${PM.spent == null ? "—" : money(PM.spent)}</b></div></div>` +
+        `<h2>Promo</h2>` +
         `<div class="list"><button class="row tap" data-act="promo" type="button"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 10v4h3l5 4V6L7 10zM16 9a4 4 0 0 1 0 6"/></svg></div><div class="t"><b>New promo project</b><span>No fee, paid from your promo balance</span></div>${CHEV}</button>` +
-        `<button class="row tap" data-act="topup" type="button"><div class="ico">${COIN_I}</div><div class="t"><b>Top up promo balance</b><span>Write-up only, no real money</span></div>${CHEV}</button></div>` +
+        `<button class="row tap" data-act="calc" type="button"><div class="ico">${COIN_I}</div><div class="t"><b>Promo calculations</b><span>What you owe earners, from your own wallet</span></div>${CHEV}</button></div>` +
         `<div class="h2row"><h2>Recent activity</h2><button class="btn ghost" data-act="all" type="button">See all</button></div>` +
         `<div class="list">${(S.acts || []).slice(0, 4).map(actBtn).join("") || '<div class="empty">No activity yet.</div>'}</div>` +
         (acct ? `<h2>Account</h2><div class="rec">${acct}</div>` : "") +
@@ -996,7 +996,7 @@ function profileView() {
       const b = e.target.closest("[data-act]"); if (!b) return;
       if (b.dataset.act === "all") Panel.open(activityView());
       else if (b.dataset.act === "promo") { prReset(); Panel.open(prV1); }
-      else if (b.dataset.act === "topup") { PR.top = ""; Panel.open(prTop); }
+      else if (b.dataset.act === "calc") { PM.open = true; Panel.open(promoCalcView()); loadPromoCalc(); }
       else if (b.dataset.act === "payouts") { PO.d = null; PO.err = ""; Panel.open(payoutView()); }
       else if (b.dataset.act === "reviews") { RV.d = null; RV.err = ""; RV.tab = "rev"; Panel.open(reviewsView()); }
       else if (b.dataset.act === "theme") { $("theme").click(); Panel.refresh(); }
@@ -1648,7 +1648,7 @@ async function load() {
   renderCash();
   setSync("busy", "Syncing"); const slow = setTimeout(() => { if ($("sync").classList.contains("busy")) setSync("busy", "Slow connection, still trying"); }, 12000);
   const ovDone = () => { $("ovSk").hidden = true; $("ovReal").hidden = false; };
-  const r = await Promise.allSettled([loadOverview().finally(ovDone), loadDeposits(), loadProjectTotals(), loadAttention(), loadInbox(), S.view === "database" ? loadDb(true) : 0, loadWithdrawn(), loadClientBal(), loadPromoSpent()]);
+  const r = await Promise.allSettled([loadOverview().finally(ovDone), loadDeposits(), loadProjectTotals(), loadAttention(), loadInbox(), S.view === "database" ? loadDb(true) : 0, loadWithdrawn(), loadClientBal(), loadPromoCalc()]);
   if (r[0].status === "rejected") $("actList").innerHTML = `<div class="empty">${esc(r[0].reason.message || "Could not load revenue.")}</div>`;
   if (r[0].status === "rejected" && S.fees === undefined) { S.fees = false; renderCash(); }
   if (r[0].status === "rejected") { $("total").textContent = "—"; $("delta").textContent = "—"; $("fProj").textContent = $("fWd").textContent = "—"; }
@@ -1692,17 +1692,57 @@ async function boot() {
 }
 /* ---- promo project: owner-only, no fee. Debits users.balance (write-up) via ledger-ops create-promo; never touches platform_revenue ---- */
 const PR = { title: "", plat: "", pdesc: "", desc: "", link: "", reward: "", eng: "", admin: null, adm: null, shots: [], files: [], top: "", busy: false, open: "", bad: {} };
-const PM = { spent: null };   // cash deducted = sum of this owner's promo projects (isPromo), never platform revenue
+const PM = { ok: null, busy: false, open: false, n: 0, worth: 0, approved: 0, joinN: 0, mileN: 0 };   // promo calculations, read-only figures (nothing here is stored)
+const PR_REFEREE = 100, PR_MILESTONE = 500, PR_CAP = 500000;   // mirror REFEREE_REWARD, MILESTONE_REWARD and PROMO_BALANCE_CAP in ledger-ops
 const PR_TOP = [1000,2000,5000,10000,20000,50000,100000,200000,500000];
 const bal = () => Number(S.me && S.me.balance) || 0;
 const prReset = () => Object.assign(PR, { title: "", plat: "", pdesc: "", desc: "", link: "", reward: "", eng: "", admin: null, shots: [], files: [], open: "", bad: {}, busy: false });
-async function loadPromoSpent() {
-  try { let sum = 0, cur = null;
+/* what you owe earners from your own wallet = promo tasks admins approved + referral joining rewards + referral milestone rewards.
+   Promo project worth is what you committed; only the approved part is owed yet. Referral rewards are written straight onto
+   earners' balances by ledger-ops, so they are counted from the earners' own records. */
+async function loadPromoCalc() {
+  if (PM.busy) return; PM.busy = true;
+  try {
+    const ps = []; let cur = null;
     for (let i = 0; i < 50; i++) { const q = [Query.equal("isPromo", true), Query.equal("createdBy", S.me.$id), Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
-      const r = await ls(databases, C.PROJECTS, q); r.documents.forEach(p => { sum += Number(p.engagementFee) || 0; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
-    PM.spent = sum;
-  } catch { PM.spent = null; }
+      const r = await ls(databases, C.PROJECTS, q); ps.push(...r.documents); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    let approved = 0;
+    for (let i = 0; i < ps.length; i += 8) {
+      const rs = await Promise.all(ps.slice(i, i + 8).map(p => count(C.TASKS, [Query.equal("projectId", p.$id), Query.equal("status", "Completed")])));
+      rs.forEach((c, j) => { if (c == null) throw new Error("tasks"); approved += c * (Number(ps[i + j].reward) || 0); });
+    }
+    let joinN = 0, mileN = 0; cur = null;
+    for (let i = 0; i < 100; i++) { const q = [Query.equal("role", "earner"), Query.orderAsc("$id"), Query.limit(100)]; if (cur) q.push(Query.cursorAfter(cur));
+      const r = await ls(databases, C.USERS, q); r.documents.forEach(u => { if (u.usedReferralCode === true && u.referredBy) joinN++; if (u.referralMilestone20Claimed === true) mileN++; }); if (r.documents.length < 100) break; cur = r.documents.at(-1).$id; }
+    Object.assign(PM, { ok: true, n: ps.length, worth: ps.reduce((t, p) => t + (Number(p.engagementFee) || 0), 0), approved, joinN, mileN });
+  } catch { PM.ok = false; }
+  PM.busy = false; if (PM.open) Panel.refresh();
 }
+function promoCalcView() { return {
+  id: "promocalc", title: "Promo calculations", sub: "What you owe earners", onClose() { PM.open = false; },
+  render(b) {
+    if (PM.ok === null) { b.innerHTML = '<div class="empty">Calculating…</div>'; return; }
+    if (PM.ok === false) { b.innerHTML = '<div class="empty">Could not read the promo figures.</div><div class="pr-act"><button class="btn pri" type="button" data-pc="retry">Try again</button></div>'; return; }
+    const row = (cls, ico, t, s, v) => `<div class="cash-row ${cls}"><div class="ico">${ico}</div><div class="t"><b>${t}</b><span>${s}</span></div><div class="r"><b>${v}</b></div></div>`;
+    const pl = (n, w) => n.toLocaleString() + " " + w + (n === 1 ? "" : "s");
+    const join = PM.joinN * PR_REFEREE, mile = PM.mileN * PR_MILESTONE, owed = PM.approved + join + mile, open = Math.max(0, PM.worth - PM.approved);
+    const tr = S.me && S.me.promoTopups != null, topped = Number(S.me && S.me.promoTopups) || 0, diff = bal() - (topped - PM.worth);
+    b.innerHTML = `<h2>What you owe</h2><div class="cash">` +
+      row("", I.cash, "Promo project worth", pl(PM.n, "promo project") + " · committed from your promo balance", money(PM.worth)) +
+      row("cash-out", I.out, "Approved by admins", "Promo tasks paid to earners", money(PM.approved)) +
+      row("cash-out", I.out, "Referral joining rewards", pl(PM.joinN, "earner") + " × " + money(PR_REFEREE), money(join)) +
+      row("cash-out", I.out, "Referral milestone rewards", pl(PM.mileN, "earner") + " × " + money(PR_MILESTONE), money(mile)) +
+      `<div class="cash-res"><div class="cash-res-top"><small>You owe earners</small><b>${money(owed)}</b></div><p>Paid from your own wallet, never from client deposits.</p></div></div>` +
+      `<p class="note">${money(open)} of promo project worth is still open. It only becomes owed when an admin approves the task.</p>` +
+      `<h2>Top-up trail</h2><div class="cash">` +
+      row("cash-in", I.in, "Topped up in total", tr ? "Every top-up is added here" : "Not tracked yet. See the deploy note", tr ? "+" + money(topped) : "—") +
+      row("cash-out", I.out, "Spent on promo projects", pl(PM.n, "project"), sg(-PM.worth)) +
+      row("", I.cash, "Promo balance now", "What you can still commit", money(bal())) +
+      (tr && Math.round(diff) !== 0 ? row("cash-out", I.out, "Unexplained difference", "Balance does not match top-ups minus spend", sg(diff)) : "") + `</div>` +
+      `<p class="note">Your promo balance can't go above ${money(PR_CAP)}.</p>`;
+  },
+  click(e) { if (e.target.closest('[data-pc="retry"]')) { PM.ok = null; Panel.refresh(); loadPromoCalc(); } }
+}; }
 const PR_PLAT = ["Facebook","Instagram","WhatsApp","TikTok","Snapchat","Threads","LinkedIn","YouTube","Telegram","X (Twitter)","Other","None"];
 const PR_REW = [50,100,200,300,400,500], PR_ENG = [10,20,40,50,70,100,150,200,250,350,400,500,600,700,800,900,1000,1500,2000,2500,3000,4000,5000,6000,7000,8000,9000,10000];
 const prCh = '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
@@ -1726,15 +1766,15 @@ function prSubmit(b) {
   const list = PR.open === "adm" ? `<div class="list" style="margin-top:8px;padding:0">${PR.adm === null ? '<p class="empty">Loading admins…</p>' : PR.adm.length ? PR.adm.map(a => `<button type="button" class="pr-adm" data-pr="adm" data-id="${esc(a.$id)}" data-n="${esc(a.name || a.email)}"><span class="pr-av">${esc((a.name || a.email || "A")[0].toUpperCase())}</span><span class="t"><b>${esc(a.name || a.email)}</b><span>${esc(a.email || "")}</span></span></button>`).join("") : '<p class="empty">No admins found.</p>'}</div>` : "";
   b.innerHTML = prSteps(2) + `<div class="pr-bal"><section class="hero"><div class="hero-top"><span>Promo balance</span><span class="pr-pill">Write-up only</span></div><div class="hero-mid"><div class="amount">${money(bal())}</div></div><div class="hero-foot"><div><small>Cash deducted</small><b>${money(t)}</b></div><div><button class="btn ghost" type="button" data-pr="topup">Top up</button></div></div></section></div>
   <div class="pr-card"><div class="pr-row"><div class="pr-f"><label>Reward per engager</label>${prDd("rew", "Select reward", PR_REW.map(v => ({ v, l: "₦" + v })), PR.reward)}</div><div class="pr-f"><label>Engagements</label>${prDd("eng", "Select number", PR_ENG.map(v => ({ v, l: String(v) })), PR.eng)}</div></div>
-  ${t ? `<div class="pr-cost"><div><span>Engagement reward</span><b>${money(t)}</b></div><div><span>Balance after</span><b style="${short ? "color:var(--neg)" : ""}">${money(bal() - t)}</b></div><div class="tot"><span>Deducted from promo balance</span><b>${money(t)}</b></div><p>${short ? "Not enough promo balance. Tap Top up." : "No real money moves. You owe earners " + money(t) + " once the admin confirms the tasks."}</p></div>` : ""}
+  ${t ? `<div class="pr-cost"><div><span>Engagement reward</span><b>${money(t)}</b></div><div><span>Balance after</span><b style="${short ? "color:var(--neg)" : ""}">${money(bal() - t)}</b></div><div class="tot"><span>Deducted from promo balance</span><b>${money(t)}</b></div><p>${short ? "Not enough promo balance. Top up to continue." : "No client money is used. You owe earners " + money(t) + " from your own wallet once the admin approves the tasks."}</p>${short ? '<button class="btn ghost" type="button" data-pr="topup" style="margin-top:10px">Top up</button>' : ""}</div>` : ""}
   <div class="pr-f"><label>Assign to admin</label>${adm}${list}</div>
   <div class="pr-f"><label>Example screenshots <em>optional, up to 5</em></label><div class="pr-shots">${[0,1,2,3,4].map(i => `<label class="pr-shot">${PR.shots[i] ? `<img alt="" src="${PR.shots[i]}">` : '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.500"/><path d="M21 16l-5-5-8 8"/></svg>'}<input type="file" accept="image/*" data-prs="${i}"></label>`).join("")}</div></div></div>
   <div class="pr-act"><button class="btn pri" type="button" data-pr="create" ${ok ? "" : "disabled"}>Create promo project</button></div>`;
 }
 const prTop = { id: "prtop", title: "Top up", sub: "Promo balance · write-up only", render(b) {
   b.innerHTML = `<div class="pr-bal"><section class="hero"><div class="hero-top"><span>Promo balance</span><span class="pr-pill">Write-up only</span></div><div class="hero-mid"><div class="amount">${money(bal())}</div></div></section></div>
-  <div class="pr-card"><div class="pr-f"><label>Amount</label>${prDd("top", "Select amount", PR_TOP.map(v => ({ v, l: money(v) })), PR.top)}</div></div>
-  <div class="pr-act"><button class="btn pri" type="button" data-pr="dotop" ${PR.top && !PR.busy ? "" : "disabled"}>Top up ${PR.top ? money(PR.top) : ""}</button><p class="pr-note">Nothing is charged and nothing is added to platform revenue.</p></div>`; }, click: e => prClick(e) };
+  <div class="pr-card"><div class="pr-f"><label>Amount</label>${prDd("top", "Select amount", PR_TOP.filter(v => bal() + v <= PR_CAP).map(v => ({ v, l: money(v) })), PR.top)}</div></div>
+  <div class="pr-act"><button class="btn pri" type="button" data-pr="dotop" ${PR.top && !PR.busy ? "" : "disabled"}>Top up ${PR.top ? money(PR.top) : ""}</button><p class="pr-note">Promo balance can't go above ${money(PR_CAP)}. Every top-up is added to your top-up total.</p></div>`; }, click: e => prClick(e) };
 const prV1 = { id: "pr1", title: "Promo project", sub: "No fee · write-up balance", render: prDetails, click: prClick };
 const prV2 = { id: "pr2", title: "Promo project", sub: "Reward and promo balance", render: prSubmit, click: prClick };
 async function prLoadAdmins() {
@@ -1758,7 +1798,7 @@ function prClick(e) {
 }
 async function prTopUp() {
   if (PR.busy || !PR.top) return; PR.busy = true; Panel.refresh();
-  try { const r = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "promo-topup", amount: Number(PR.top) }); S.me.balance = r.balance; toast("Promo balance " + money(r.balance)); PR.top = ""; PR.busy = false; Panel.back(); }
+  try { const r = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "promo-topup", amount: Number(PR.top) }); S.me.balance = r.balance; S.me.promoTopups = r.topups; toast("Promo balance " + money(r.balance)); PR.top = ""; PR.busy = false; Panel.back(); }
   catch (e) { PR.busy = false; toast(e.message || "Top up failed"); Panel.refresh(); }
 }
 async function prCreate() {
@@ -1767,7 +1807,7 @@ async function prCreate() {
     const files = PR.files.filter(Boolean), perms = [Permission.read(Role.users()), Permission.write(Role.user(S.me.$id))];
     const shots = await Promise.all(files.map(f => uploadToStorage(f, perms)));
     const r = await callFunction(FUNCTIONS.LEDGER_OPS, { action: "create-promo", adminId: PR.admin.id, adminName: PR.admin.name, title: PR.title.trim(), description: PR.desc.trim(), link: PR.link.trim(), reward: Number(PR.reward), engagers: Number(PR.eng), requiredPlatform: PR.plat, requiredPlatformDescription: PR.pdesc.trim(), screenshotUrls: shots });
-    S.me.balance = bal() - r.total; PM.spent = (PM.spent || 0) + r.total; toast("Promo project created"); prReset(); Panel.closeAll();
+    S.me.balance = bal() - r.total; PM.worth += r.total; toast("Promo project created"); prReset(); Panel.closeAll();
   } catch (e) { PR.busy = false; toast(e.message || "Could not create the promo project"); Panel.refresh(); }
 }
 $("pnBody").addEventListener("input", e => { const k = e.target.dataset.prf; if (!k) { return; } PR[k] = e.target.value; if (PR.bad[k]) { delete PR.bad[k]; e.target.classList.remove("bad"); const m = e.target.parentNode.querySelector(".pr-msg"); if (m) m.classList.remove("on"); } });
