@@ -24,6 +24,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#05100c">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"BoostGrid","url":"https://boostgrid.github.io/"}</script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
@@ -213,6 +214,17 @@ footer{ padding:40px 20px 48px; text-align:center; font-size:13px; color:var(--t
   .nav-actions .btn-outline{ display:none; }
 }
 @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } .td-step.done{ animation:none; } #siteHeader,.mobile-menu,.mobile-menu > *{ transition:none !important; } }
+/* install app */
+.install-box{ grid-column:1; margin-top:-8px; }
+.install-btn{ width:100%; display:flex; align-items:center; justify-content:center; gap:10px; border:1.5px solid var(--brand);
+  border-radius:var(--radius-sm); padding:16px 24px; cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700;
+  color:var(--brand-deep); background:var(--surface); transition:transform .3s var(--spring); }
+body.dark .install-btn{ color:var(--brand); }
+.install-btn:active{ transform:scale(.97); }
+.install-btn svg{ width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.install-hint{ margin:10px 2px 0; font-size:14px; line-height:1.5; color:var(--text-dim); }
+.install-hint b{ color:var(--text); }
+@media (max-width:640px){ .install-box{ grid-column:1; } }
 </style>
 </head>
 <body>
@@ -255,6 +267,10 @@ footer{ padding:40px 20px 48px; text-align:center; font-size:13px; color:var(--t
     <div class="hero-ctas">
       <button class="role-btn primary" onclick="goToSignup('earner')">Start Earning</button>
       <button class="role-btn secondary" onclick="goToSignup('client')">Grow My Account</button>
+    </div>
+    <div class="install-box" id="installBox" hidden>
+      <button class="install-btn" id="installBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16"/></svg>Install the BoostGrid app</button>
+      <p class="install-hint" id="installHint" hidden></p>
     </div>
 
     <div class="task-demo" aria-hidden="true">
@@ -459,6 +475,29 @@ footer{ padding:40px 20px 48px; text-align:center; font-size:13px; color:var(--t
     }
     lastScroll = current;
   });
+</script>
+<script>
+// Install the app: one wide button. Chrome/Edge/Samsung give a real install prompt; iPhone and in-app browsers
+// (Facebook, Instagram, WhatsApp...) cannot, so the button shows the exact steps instead.
+(function(){
+  var box=document.getElementById('installBox'), btn=document.getElementById('installBtn'), hint=document.getElementById('installHint'), dp=null;
+  var ua=navigator.userAgent||'';
+  var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  if(standalone) return;                                   // already installed and opened as the app
+  var ios=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var inApp=/FBAN|FBAV|Instagram|WhatsApp|Line\/|Snapchat|TikTok|Twitter|MicroMessenger|; wv\)/i.test(ua);
+  box.hidden=false;
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); dp=e; });
+  window.addEventListener('appinstalled',function(){ dp=null; box.hidden=true; });
+  function say(t){ hint.innerHTML=t; hint.hidden=false; }
+  btn.addEventListener('click',function(){
+    if(dp){ var p=dp; dp=null; p.prompt(); p.userChoice.then(function(c){ if(c&&c.outcome==='accepted') box.hidden=true; else say('No problem. You can install it any time from this button.'); }).catch(function(){}); return; }
+    if(ios) return say('On iPhone: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>.');
+    if(inApp) return say('This browser cannot install apps. Open this page in <b>Chrome</b> (menu, then <b>Open in browser</b>), then tap this button again.');
+    say('Tap the browser menu <b>&#8942;</b> and choose <b>Install app</b> (or <b>Add to Home screen</b>, then <b>Install</b>).');
+  });
+  if('serviceWorker' in navigator&&window.isSecureContext) navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
 </script>
 </body>
 </html>
