@@ -853,7 +853,7 @@ function payoutView() {
         `<label class="note" for="poDay" style="display:block;margin-top:10px">Most one earner can receive per 24 hours (₦)</label><input class="field" id="poDay" type="text" inputmode="numeric" value="${d.dailyMax}" style="min-height:0;margin-top:4px">` +
         `<button class="btn pri" data-po="save" type="button" style="margin-top:14px;width:100%">Save limits</button>` +
         `<h2>How it works</h2><p class="note" style="line-height:1.6">When it is on and an earner taps Withdraw, the transfer starts straight away, only if: the signed-in earner is withdrawing from their own wallet, the bank returned the account name, the amount is over the minimum with the charge already taken, it is within the limits above, and the account has no flags. Anything else waits for you. Flutterwave confirms the result; a failed transfer is refunded to the earner automatically.</p>` +
-        `<h2>Bank codes</h2><p class="note">Checks which Flutterwave bank each bank in the earner's list is matched to.</p><button class="btn ghost" data-po="banks" type="button" style="margin-top:10px;width:100%">Check bank codes</button>` +
+        `<h2>Bank codes</h2><p class="note">Checks which Flutterwave bank each of the main banks is matched to. The earner's picker now also lists every other bank Flutterwave returns. "No match" only means the code could not be found by name; a bank Flutterwave can't name-check lets the earner type the name instead.</p><button class="btn ghost" data-po="banks" type="button" style="margin-top:10px;width:100%">Check bank codes</button>` +
         (PO.banks ? `<div class="list" style="margin-top:12px">${PO.banks.map(m => `<div class="row"><div class="t"><b>${esc(m.ours)}</b><span style="white-space:normal">${m.flutterwave ? esc(m.flutterwave) + " · " + esc(m.code) : "<span style=\"color:#e5484d\">No match" + (m.code ? " (fallback " + esc(m.code) + ")" : "") + "</span>"}</span></div></div>`).join("")}</div>` : "");
     },
     async click(e) {
@@ -1332,10 +1332,10 @@ function renderFlags() {
 }
 function renderWd() {
   $("aWd").innerHTML = (S.wds || []).map(w => acard(w.accountName || uname(w.userId), '<span class="pill t-warn">' + esc(money(w.netAmount ?? w.amount)) + '</span>',
-    arow("Earner", esc(uname(w.userId))) + arow("Bank", esc(w.bankName || "")) + arow("Account name", esc(w.accountName || "")) +
+    arow("Earner", esc(uname(w.userId))) + arow("Bank", esc(w.bankName || "")) + arow("Account name", esc(w.accountName || "")) + (w.nameVerified === false ? arow("Name check", '<em class="st t-warn">Typed by the earner, not verified</em>') : "") +
     arow("Account number", `<span class="mono">${esc(w.accountNumber || "")}</span>`) + arow("Fee", esc(money(w.charge))) +
     arow("Withdrawal ID", `<span class="mono">${esc(w.withdrawalId || w.$id)}</span>`) + arow("Waiting", waited(tsOf(w))),
-    w.flwReference ? `<button class="btn" style="width:auto" data-sync="${esc(w.$id)}" type="button">Check transfer</button>` : `<button class="btn pri" style="width:auto" data-pay="${esc(w.$id)}" type="button">Pay / mark as paid</button>`)).join("")
+    w.flwReference ? `<button class="btn" style="width:auto" data-sync="${esc(w.$id)}" type="button">Check transfer</button>` : `<button class="btn pri" style="width:auto" data-pay="${esc(w.$id)}" type="button">Pay / mark as paid</button><button class="btn ghost" style="width:auto" data-rej="${esc(w.$id)}" type="button">Reject</button>`)).join("")
     || '<div class="list"><div class="empty">No withdrawals waiting.</div></div>';
 }
 $("aWd").addEventListener("click", async e => {
@@ -1346,9 +1346,22 @@ $("aWd").addEventListener("click", async e => {
     catch (err) { sy.disabled = false; sy.textContent = "Check transfer"; toast(err.message || "Could not check"); }
     return;
   }
+  const rj = e.target.closest("[data-rej]");
+  if (rj) {
+    const w = (S.wds || []).find(x => x.$id === rj.dataset.rej); if (!w) return;
+    const REASONS = ["The bank name could not be found", "The account number is not valid for this bank", "The account name does not match the account", "We could not verify this account. Check the details and try again"];
+    const reason = await Modal.open({ tone: "warn", title: "Reject this withdrawal?", text: "The earner gets the full amount back, fee included, and sees the reason you pick.",
+      rows: [["Amount", money(w.netAmount ?? w.amount)], ["Account name", w.accountName || uname(w.userId)], ["Bank", w.bankName], ["Account number", w.accountNumber, true]],
+      actions: [...REASONS.map(r => ({ label: r, kind: "ghost", value: r })), { label: "Cancel", kind: "ghost", value: null }] });
+    if (!reason) return;
+    rj.disabled = true; rj.textContent = "Rejecting…";
+    try { await callFunction(FUNCTIONS.WALLET_OPS, { action: "reject-withdrawal", withdrawalDocId: w.$id, reason }); toast("Rejected. The earner was refunded"); loadAttention(); }
+    catch (err) { rj.disabled = false; rj.textContent = "Reject"; toast(err.message || "Could not reject"); }
+    return;
+  }
   const b = e.target.closest("[data-pay]"); if (!b) return; const w = (S.wds || []).find(x => x.$id === b.dataset.pay); if (!w) return;
   if (!await Modal.confirm({ tone: "warn", title: "Pay this withdrawal?", text: "With automatic payouts on, this sends the money to the earner from your Flutterwave balance. With them off, only confirm after you have sent it yourself. It can't be undone.", confirm: "Pay / mark as paid",
-    rows: [["Amount", money(w.netAmount ?? w.amount)], ["Account name", w.accountName || uname(w.userId)], ["Bank", w.bankName], ["Account number", w.accountNumber, true]] })) return;
+    rows: [["Amount", money(w.netAmount ?? w.amount)], ["Account name", w.accountName || uname(w.userId)], ["Name check", w.nameVerified === false ? "NOT verified (typed by earner)" : ""], ["Bank", w.bankName], ["Account number", w.accountNumber, true]] })) return;
   b.disabled = true; b.textContent = "Working…";
   try { const r = await callFunction(FUNCTIONS.WALLET_OPS, { action: "process-withdrawal", withdrawalDocId: w.$id }); toast(r && r.auto ? "Transfer started. It is marked paid when the bank confirms" : "Withdrawal marked as paid"); loadAttention(); }
   catch (err) { b.disabled = false; b.textContent = "Pay / mark as paid"; toast(err.message || "Could not pay"); }

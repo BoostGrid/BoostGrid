@@ -776,6 +776,7 @@
   .wd-vf{ margin:-20px 14px 22px; font-size:12.5px; font-weight:600; line-height:1.4; color:var(--text-dim); }
   .wd-vf.ok{ color:var(--brand-deep); } body.dark .wd-vf.ok{ color:var(--brand); }
   .wd-vf.err{ color:#e5484d; cursor:pointer; }
+  .wd-vf.warn{ color:#b7791f; } body.dark .wd-vf.warn{ color:#f0b44c; }
   .wd-f label{
     position:absolute; left:0; top:16px; line-height:20px; font-size:12.5px; font-weight:500; color:var(--text-dim);
     transform-origin:left top; pointer-events:none;
@@ -2433,7 +2434,8 @@
     task_rejected: { title:'Proof rejected', icon:NOTIF_ICON_X },
     flag_confirmed: { title:'Flag confirmed', icon:NOTIF_ICON_FLAG },
     flag_confirmed_earner: { title:'Submission flagged', icon:NOTIF_ICON_FLAG },
-    flag_dismissed: { title:'Flag dismissed', icon:NOTIF_ICON_FLAG }
+    flag_dismissed: { title:'Flag dismissed', icon:NOTIF_ICON_FLAG },
+    withdrawal_rejected: { title:'Withdrawal rejected', icon:NOTIF_ICON_X }
   };
   const NS_KEY = () => 'socihub_earner_notif_seen_v1_' + currentUserId;
   const notifSeenAt = () => { try { return Number(localStorage.getItem(NS_KEY())) || 0; } catch (e) { return 0; } };
@@ -4459,16 +4461,22 @@
   // bank's name; the server re-resolves on submit-withdrawal
   const WDV = { key:'', ok:false, seq:0 };
   function wdVf(state, msg){ const el = $('wdVf'); el.className = 'wd-vf' + (state ? ' ' + state : ''); el.textContent = msg || ''; el.hidden = !msg; }
+  // the name box is read-only and bank-filled, except for banks that cannot be name-checked
+  function wdNameLock(){ const n = $('wdName'); n.value = ''; n.readOnly = true; n.placeholder = 'Filled in after verification'; }
+  function wdNameUnlock(){ const n = $('wdName'); n.value = ''; n.readOnly = false; n.placeholder = 'Type the account name'; }
+  $('wdName').addEventListener('input', () => { if (!$('wdName').readOnly) wdUpdate(); });
   async function wdVerify(){
     const bank = $('wdBank').value.trim(), acct = $('wdAcct').value, key = bank.toLowerCase() + '|' + acct;
-    if (!bank || !/^\d{10}$/.test(acct)){ WDV.key = ''; WDV.ok = false; WDV.seq++; $('wdName').value = ''; wdVf(); wdUpdate(); return; }
+    if (!bank || !/^\d{10}$/.test(acct)){ WDV.key = ''; WDV.ok = false; WDV.seq++; wdNameLock(); wdVf(); wdUpdate(); return; }
     if (WDV.key === key && WDV.ok) return;
     WDV.key = key; WDV.ok = false; const my = ++WDV.seq;
-    $('wdName').value = ''; wdVf('load', 'Verifying account…'); wdUpdate();
+    wdNameLock(); wdVf('load', 'Verifying account…'); wdUpdate();
     try {
       const r = await callFunction(FUNCTIONS.WALLET_OPS, { action:'resolve-account', bankName:bank, accountNumber:acct });
       if (my !== WDV.seq) return;                       // the bank or number changed while we were waiting
-      $('wdName').value = r.accountName; WDV.ok = true; wdVf('ok', 'Account verified');
+      if (r.manual){   // this bank cannot be name-checked: the earner types the name; the withdrawal is still sent to the owner
+        WDV.ok = true; wdNameUnlock(); wdVf('warn', 'We can not check names for this bank. Type the account name exactly as it appears on the account.');
+      } else { $('wdName').value = r.accountName; WDV.ok = true; wdVf('ok', 'Account verified'); }
     } catch (e){
       if (my !== WDV.seq) return;
       wdVf('err', ((e && e.message) || 'Could not verify this account.') + ' Tap to try again.');
@@ -4499,7 +4507,7 @@
     if (open === p.classList.contains('open')) return;
     if (open) BackNav.add('withdraw', () => setWithdraw(false)); else BackNav.remove('withdraw');
     if (open){
-      ['wdAmount', 'wdBank', 'wdAcct', 'wdName'].forEach(id => { $(id).value = ''; });
+      ['wdAmount', 'wdBank', 'wdAcct'].forEach(id => { $(id).value = ''; }); wdNameLock();
       WDV.key = ''; WDV.ok = false; WDV.seq++; wdVf();
       // prefill = a saved account ({ bank, accountNumber, accountName }); the amount is still typed by the user
       if (prefill){ $('wdBank').value = prefill.bank; $('wdAcct').value = prefill.accountNumber; }   // the name is re-verified below, never copied from the saved account
@@ -4525,7 +4533,7 @@
   /* Bank picker */
   // replaces the native datalist: the bank field is readonly and a tap opens this floating list; typing filters it,
   // and an unlisted bank can be used as typed
-  const WD_BANKS = ['Access Bank', 'Fidelity Bank', 'First Bank', 'FCMB', 'GTBank', 'Kuda', 'Moniepoint', 'Opay', 'PalmPay', 'Polaris Bank', 'Stanbic IBTC', 'Sterling Bank', 'UBA', 'Union Bank', 'Wema Bank', 'Zenith Bank', 'Ecobank', 'Keystone Bank', 'Providus Bank', 'Jaiz Bank', 'Heritage Bank', 'Unity Bank', 'Standard Chartered', 'Citibank', 'VFD Microfinance Bank'];
+  let WD_BANKS = ['Access Bank', 'Fidelity Bank', 'First Bank', 'FCMB', 'GTBank', 'Kuda', 'Moniepoint', 'Opay', 'PalmPay', 'Polaris Bank', 'Stanbic IBTC', 'Sterling Bank', 'UBA', 'Union Bank', 'Wema Bank', 'Zenith Bank', 'Ecobank', 'Keystone Bank', 'Providus Bank', 'Jaiz Bank', 'Heritage Bank', 'Unity Bank', 'Standard Chartered', 'Citibank', 'VFD Microfinance Bank'];
   function bankVV(){
     // keep the card centred in what is left of the screen when the keyboard is up
     const m = $('wdBankModal'), vv = window.visualViewport;
@@ -4554,6 +4562,17 @@
     hits.forEach(b => add(b, b, false));
     if (q && !WD_BANKS.some(b => b.toLowerCase() === ql)) add(q, 'Use “' + q + '”', true);
   }
+  // the full bank list comes from wallet-ops (Flutterwave's own names, so every one can be verified); the built-in
+  // list above is the fallback if that call fails. Loaded once, the first time the picker opens.
+  let wdBanksLoaded = false;
+  async function loadAllBanks(){
+    if (wdBanksLoaded) return; wdBanksLoaded = true;
+    try {
+      const r = await callFunction(FUNCTIONS.WALLET_OPS, { action:'banks' });
+      if (r && Array.isArray(r.banks) && r.banks.length){ WD_BANKS = r.banks.map(b => String(b).slice(0, 80)); if ($('wdBankModal').style.display === 'flex') renderBankList(); }
+      else wdBanksLoaded = false;
+    } catch (e){ wdBanksLoaded = false; }
+  }
   function setBankPick(open){
     const m = $('wdBankModal');
     if ((m.style.display === 'flex') === open) return;
@@ -4564,6 +4583,7 @@
       m.style.display = 'flex';
       bankVV();
       renderBankList();
+      loadAllBanks();
       $('wdBankList').scrollTop = 0;
     } else {
       $('wdBankQ').blur();
@@ -4572,7 +4592,7 @@
     }
   }
   function pickBank(name){
-    $('wdBank').value = String(name).trim().slice(0, 40);
+    $('wdBank').value = String(name).trim().slice(0, 80);
     setBankPick(false);
     wdUpdate();
     wdVerify();
